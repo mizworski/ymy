@@ -1,0 +1,107 @@
+entrypoints Program, Stmt, Exp ;
+
+Progr.  Program ::= [Stmt] ;
+
+DeclS.	  Stmt ::= Dec_stmt ;
+DefS.	  Stmt ::= Def_stmt ;
+CompS.    Stmt ::= Compound_stmt ;
+ExprS.    Stmt ::= Expression_stmt ;
+SelS.     Stmt ::= Selection_stmt ;
+IterS.    Stmt ::= Iter_stmt ;
+FlowS.    Stmt ::= Flow_stmt ;
+PrintS.   Stmt ::= Print_stmt ;
+
+separator Stmt "" ;
+
+Declarator. 	Dec  ::= Ident "::" Type2 ;
+
+separator nonempty Dec "," ;
+
+Tunit.		Type  ::= "Unit";
+Tarray.		Type2 ::= "[" Type2 "]";
+Tint.		Type2 ::= "Int";
+Tbool.		Type2 ::= "Bool";
+Tstring.	Type2 ::= "String";
+
+-- trochę obejście ale nie chciałem pozwolić na zdefiniowanie (Int), bo nie planuję implementować tupli
+-- nie wiem też czy ta konstrukcja jest wymagana, bo mógłbym zostawić bez nawiasów,
+-- jednak jeszcze nie jestem pewien czy będę implementował częściową aplikację, więc jeśli chcę 
+-- przekazywać funkcje przez parametr to muszę to chyba tak zostawić
+Tfun.		Type  ::= "(" Type "->" Type ")" ;
+Tfunarg.	Type2 ::= Type "->" Type;
+
+coercions Type 2 ;
+
+Decl.       Dec_stmt ::= Dec ";" ;
+DefFunct.   Def_stmt ::= "def" Ident "(" [Ident] ")" ":" Stmt ;
+
+separator Ident "," ;
+
+Scomp.   Compound_stmt ::= "{" [Stmt] "}" ;
+
+SiterOne.   Iter_stmt ::= "while" Exp ":" Stmt;
+SiterTwo.   Iter_stmt ::= "for" Expression_stmt Expression_stmt ":" Stmt ;
+SiterThree. Iter_stmt ::= "for" Expression_stmt Expression_stmt Exp ":" Stmt;
+
+SexprEmpty.   	Expression_stmt ::= ";" ;
+Sexpr.   	Expression_stmt ::= Exp ";" ;
+
+Sif.        Selection_stmt ::= "if" Exp ":" Stmt ;
+SifElse.    Selection_stmt ::= "if" Exp ":" Stmt "else" ":" Stmt ;
+
+Scontinue.   	Flow_stmt ::= "continue" ";" ;
+Sbreak.		Flow_stmt ::= "break" ";" ;
+Sreturn. 	Flow_stmt ::= "return" Exp ";" ;
+
+-- print statement
+
+Sprint.	  Print_stmt ::= "print" Exp ";";
+
+Elambda.     Exp1  ::= "lambda" [Dec] ":" Exp;
+Eassign.     Exp2  ::= Exp13 Assignment_op Exp;
+Econdition.  Exp3  ::= Exp4 "?" Exp ":" Exp3;
+Elor.        Exp4  ::= Exp4 "or" Exp5;
+Eland.       Exp5  ::= Exp5 "and" Exp6;
+Epreoplog.   Exp6  ::= Unary_log_operator Exp5;
+Eeq.         Exp7  ::= Exp7 "==" Exp8;
+Eneq.        Exp7  ::= Exp7 "!=" Exp8;
+Elthen.      Exp8  ::= Exp8 "<" Exp9;
+Egrthen.     Exp8  ::= Exp8 ">" Exp9;
+Ele.         Exp8  ::= Exp8 "<=" Exp9;
+Ege.         Exp8  ::= Exp8 ">=" Exp9;
+Eplus.       Exp9  ::= Exp9 "+" Exp10;
+Eminus.      Exp9  ::= Exp9 "-" Exp10;
+Etimes.      Exp10 ::= Exp10 "*" Exp11;
+Ediv.        Exp10 ::= Exp10 "/" Exp11;
+Emod.        Exp10 ::= Exp10 "%" Exp11;
+Earray.      Exp10 ::= "[" [Exp] "]" ;
+Epreopexp.   Exp11 ::= Unary_exp_operator Exp10;
+Epostinc.    Exp12 ::= Exp12 "++";
+Epostdec.    Exp12 ::= Exp12 "--";
+Efunkpar.    Exp13 ::= Exp13 "(" [Exp] ")";
+Earrayget.   Exp13 ::= Exp13 "[" Exp9 "]" ;
+Evar.        Exp14 ::= Ident;
+Econst.      Exp14 ::= Constant;
+
+Einteger.	Constant ::= Integer;
+Ebool.		Constant ::= Boolean;
+Estring.	Constant ::= String;
+
+separator Exp "," ;
+coercions Exp 14 ;
+
+token Boolean {"True"} | {"False"} ;
+
+Plus.        Unary_exp_operator ::= "+" ;
+Negative.    Unary_exp_operator ::= "-" ;
+Logicalneg.  Unary_log_operator ::= "not" ;
+
+Assign.       Assignment_op ::= "=" ;
+AssignMul.    Assignment_op ::= "*=" ;
+AssignDiv.    Assignment_op ::= "/=" ;
+AssignMod.    Assignment_op ::= "%=" ;
+AssignAdd.    Assignment_op ::= "+=" ;
+AssignSub.    Assignment_op ::= "-=" ;
+
+comment "//";
+comment "#";

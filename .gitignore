@@ -1,3 +1,7 @@
 .stack-work/
+.idea/
 ymy.cabal
+cabal.config
+bnfc/
 *~
+interpreter
