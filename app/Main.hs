@@ -21,27 +21,12 @@ interpreter env store = do
   stmt <- parseLines
   case (pProgram $ myLexer stmt) of
     (Ok p) -> do
-      checkRes <- runExceptT $ typeCheck env store p
-      case checkRes of
-        (Left e) -> hPutStrLn stderr $ "Type error: " ++ e
-        otherwise -> do
-          res <- runExceptT $ interpret env store p
-          case res of
-            (Left e) -> do
-              hPutStrLn stderr $ "Runtime error: " ++ e
-            (Right (env', store')) -> do
-              putStrLn $ show p
-              putStrLn $ show env'
-              putStrLn $ show store'
-              env <- return env'
-              store <- return store'
-              return ()
+      (env', store') <- interpret env store p
+      interpreter env' store'
     (Bad p) -> do
       putStrLn $ "Syntax error"
+      interpreter env store
 
-  putStrLn $ show env
-  putStrLn $ show store
-  interpreter env store
 
 parseLines :: IO(String)
 parseLines = do

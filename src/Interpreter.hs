@@ -15,10 +15,28 @@ import Control.Monad.State
 import Control.Monad.Reader
 import Control.Monad.Except
 
+import System.IO
+import System.Environment
 
-interpret :: Env -> Store -> Program -> Result ((Env, Store))
---interpret env store program = runReaderT (runStateT (runProg program) store) env
-interpret env store program = runProg env store program
+interpret :: Env -> Store -> Program -> IO((Env, Store))
+interpret env store program = do
+  checkRes <- runExceptT $ typeCheck env store program
+  case checkRes of
+    (Left e) -> do
+      hPutStrLn stderr $ "Type error: " ++ e
+      return (env, store)
+    otherwise -> do
+      putStrLn $ show program
+      res <- runExceptT $ runProg env store program
+      case res of
+        (Left e) -> do
+          hPutStrLn stderr $ "Runtime error: " ++ e
+          return (env, store)
+        (Right (env', store')) -> do
+          putStrLn $ show env'
+          putStrLn $ show store'
+          return (env', store')
+
 
 
 runProg :: Env -> Store -> Program -> Result ((Env, Store))
@@ -44,8 +62,30 @@ runStmt stmt = do
 
 
 evalStmt :: Stmt -> PartialResult TypedVal
-evalStmt stmt = return (Tint, Num 2)
+evalStmt (ExprS stmt) = evalExprStmt stmt
+evalStmt (CompS stmt) = evalCompoundStmt stmt
+evalStmt (SelS stmt) = evalSelStmt stmt
+evalStmt (IterS stmt) = evalIterStmt stmt
+evalStmt (FlowS stmt) = evalFlowStmt stmt
+evalStmt (PrintS stmt) = evalPrintStmt stmt
 
+evalCompoundStmt :: Compound_stmt -> PartialResult TypedVal
+evalCompoundStmt stmt = return (Tint, Num 0)
+
+evalExprStmt :: Expression_stmt -> PartialResult TypedVal
+evalExprStmt stmt = return (Tint, Num 0)
+
+evalIterStmt :: Iter_stmt -> PartialResult TypedVal
+evalIterStmt stmt = return (Tint, Num 0)
+
+evalSelStmt :: Selection_stmt -> PartialResult TypedVal
+evalSelStmt stmt = return (Tint, Num 0)
+
+evalFlowStmt :: Flow_stmt -> PartialResult TypedVal
+evalFlowStmt stmt = return (Tint, Num 0)
+
+evalPrintStmt :: Print_stmt -> PartialResult TypedVal
+evalPrintStmt stmt = return (Tint, Num 0)
 
 runDecl :: Decl_stmt -> PartialResult Env
 runDecl (DeclVar (Declarator identifier varType)) = declare identifier varType
@@ -61,9 +101,9 @@ declare varName varType = do
     Just val -> overwrite varName loc
 
 overwrite :: Ident -> Loc -> PartialResult Env
-overwrite var loc = do
+overwrite var newloc = do
   env <- ask
-  return [ if(var1 == var) then (var, loc) else envEl | envEl@(var1 ,loc1) <- env ]
+  return [ if(envVar == var) then (var, newloc) else envElem | envElem@(envVar, envLoc) <- env ]
 
 newloc :: PartialResult Loc
 newloc = do
