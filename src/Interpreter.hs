@@ -37,7 +37,6 @@ interpret env store program = do
           putStrLn $ show store'
           return (env', store')
 
--- Result = ExceptT String IO
 
 runProg :: Env -> Store -> Program -> Result ((Env, Store))
 runProg env store (Progr []) = do
@@ -85,10 +84,6 @@ evalCompoundStmt (Scomp (stmt:stmts)) = do
   evalCompoundStmt (Scomp stmts)
   return (Tunit, Undefined)
 
-hEvalCompoundStmt env store (Scomp (stmt:stmts)) = do
-  (env', store') <- runReaderT (runStateT (runStmt stmt) store) env
-  hEvalCompoundStmt env' store' (Scomp stmts)
-
 evalExprStmt :: Expression_stmt -> PartialResult TypedVal
 evalExprStmt SexprEmpty = return (Tunit, Undefined)
 evalExprStmt (Sexpr expr) = evalExpr expr
@@ -104,7 +99,19 @@ evalExpr (Eassign e1 op e2) = do
     AssignSub -> evalExpr $ Eminus e1 e2
   assign e1 newVal
   return newVal
+evalExpr (Econst const) = evalConst const
+evalExpr (Evar ident) = evalVar ident
 evalExpr expr = return (Tint, Num 0)
+
+evalConst :: Constant -> PartialResult TypedVal
+evalConst (Einteger  int) = return (Tint, Num int)
+evalConst (Ebool bool) = return (Tbool, Bool bool)
+evalConst (Estring str) = return (Tstring, Str str)
+
+evalVar :: Ident -> PartialResult TypedVal
+evalVar ident = do
+  loc <- getloc (Evar ident)
+  getval loc
 
 evalIterStmt :: Iter_stmt -> PartialResult TypedVal
 evalIterStmt stmt = return (Tint, Num 0)
@@ -159,8 +166,15 @@ getloc :: Exp -> PartialResult Loc
 getloc (Evar ident) = do
   env <- ask
   case lookup ident env of
-    Nothing -> throwError "Undeclared var"
+    Nothing -> throwError "Undeclared var."
     Just loc -> return loc
 
+getval :: Loc -> PartialResult TypedVal
+getval loc = do
+  store <- get
+  case Data.Map.lookup loc store of
+    Nothing -> throwError "Internal Error - invalid loc."
+    Just (_, Undefined) -> throwError "Undefinded var."
+    Just val -> return val
 deepCopy :: TypedVal -> PartialResult TypedVal
 deepCopy val = return val

@@ -7,7 +7,6 @@ import Control.Monad.State
 import Control.Monad.Reader
 import Control.Monad.Except
 
---type Var = String
 type Loc = Int
 type TypedVal = (Type, Val)
 
@@ -15,28 +14,13 @@ type Env = [(Ident, Loc)]
 
 type Result = ExceptT String IO
 
---data VarType
---  = IntT
---  | BoolT
---  | StringT
---  | UnitT
-
---instance Eq VarType where
---     IntT == IntT = True
---     BoolT == BoolT = True
---     StringT == StringT = True
---     UnitT == UnitT = True
---
---instance Show VarType where
---    show (IntT) = "Int"
---    show (BoolT) = "Bool"
---    show (StringT) = "Char"
---    show (UnitT) = "()"
+type Function = (Env, [Ident], Stmt)
 
 data Val
-  = Num Int
-  | Bool Bool
-  | String String
+  = Num Integer
+  | Bool Boolean
+  | Str String
+  | Fun Function
   | Undefined
   deriving (Show)
 
