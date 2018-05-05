@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Interpreter
 import Datatypes
 import TypeCheck
 
@@ -16,16 +16,12 @@ import System.IO
 import System.Environment
 import Control.Monad.Except
 
-
-interpret :: Env -> Store -> Program -> Result
-interpret env store program = return (env, store)
-
 interpreter :: Env -> Store -> IO()
 interpreter env store = do
   stmt <- parseLines
   case (pProgram $ myLexer stmt) of
     (Ok p) -> do
-      checkRes <- runExceptT $ typeCheck p
+      checkRes <- runExceptT $ typeCheck env store p
       case checkRes of
         (Left e) -> hPutStrLn stderr $ "Type error: " ++ e
         otherwise -> do
@@ -33,14 +29,19 @@ interpreter env store = do
           case res of
             (Left e) -> do
               hPutStrLn stderr $ "Runtime error: " ++ e
-              interpreter env store
             (Right (env', store')) -> do
               putStrLn $ show p
               putStrLn $ show env'
-              interpreter env' store'
+              putStrLn $ show store'
+              env <- return env'
+              store <- return store'
+              return ()
     (Bad p) -> do
       putStrLn $ "Syntax error"
 
+  putStrLn $ show env
+  putStrLn $ show store
+  interpreter env store
 
 parseLines :: IO(String)
 parseLines = do

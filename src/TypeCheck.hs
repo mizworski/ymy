@@ -15,7 +15,7 @@ import Data.Map
 
 type TypeCheckResult = ExceptT String IO
 
-typeCheck :: Program -> TypeCheckResult ()
-typeCheck p = do
+typeCheck :: Env -> Store -> Program -> TypeCheckResult ()
+typeCheck env store prog = do
 --  runReaderT (checkProgram p) (empty, empty, empty)
   return ()

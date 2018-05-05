@@ -2,8 +2,7 @@ entrypoints Program, Stmt, Exp ;
 
 Progr.  Program ::= [Stmt] ;
 
-DeclS.	  Stmt ::= Dec_stmt ;
-DefS.	  Stmt ::= Def_stmt ;
+DeclS.	  Stmt ::= Decl_stmt ;
 CompS.    Stmt ::= Compound_stmt ;
 ExprS.    Stmt ::= Expression_stmt ;
 SelS.     Stmt ::= Selection_stmt ;
@@ -32,8 +31,8 @@ Tfunarg.	Type2 ::= Type "->" Type;
 
 coercions Type 2 ;
 
-Decl.       Dec_stmt ::= Dec ";" ;
-DefFunct.   Def_stmt ::= "def" Ident "(" [Ident] ")" ":" Stmt ;
+DeclVar.    Decl_stmt ::= Dec ";" ;
+DeclFn.     Decl_stmt ::= "def" Ident "(" [Ident] ")" ":" Stmt ;
 
 separator Ident "," ;
 
