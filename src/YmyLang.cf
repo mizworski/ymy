@@ -57,7 +57,7 @@ Sreturn. 	Flow_stmt ::= "return" Exp ";" ;
 Sprint.	  Print_stmt ::= "print" Exp ";";
 
 Elambda.     Exp1  ::= "lambda" [Dec] ":" Exp;
-Eassign.     Exp2  ::= Exp13 Assignment_op Exp;
+Eassign.     Exp2  ::= Exp14 Assignment_op Exp;
 Econdition.  Exp3  ::= Exp4 "?" Exp ":" Exp3;
 Elor.        Exp4  ::= Exp4 "or" Exp5;
 Eland.       Exp5  ::= Exp5 "and" Exp6;
@@ -78,16 +78,16 @@ Epreopexp.   Exp11 ::= Unary_exp_operator Exp10;
 Epostinc.    Exp12 ::= Exp12 "++";
 Epostdec.    Exp12 ::= Exp12 "--";
 Efunkpar.    Exp13 ::= Exp13 "(" [Exp] ")";
-Earrayget.   Exp13 ::= Exp13 "[" Exp9 "]" ;
-Evar.        Exp14 ::= Ident;
-Econst.      Exp14 ::= Constant;
+Earrayget.   Exp14 ::= Exp14 "[" Exp9 "]" ;
+Evar.        Exp15 ::= Ident;
+Econst.      Exp15 ::= Constant;
 
 Einteger.	Constant ::= Integer;
 Ebool.		Constant ::= Boolean;
 Estring.	Constant ::= String;
 
 separator Exp "," ;
-coercions Exp 14 ;
+coercions Exp 15 ;
 
 token Boolean {"True"} | {"False"} ;
 
