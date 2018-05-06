@@ -142,9 +142,9 @@ instance Print Compound_stmt where
 
 instance Print Iter_stmt where
   prt i e = case e of
-    SiterOne exp stmt -> prPrec i 0 (concatD [doc (showString "while"), prt 0 exp, doc (showString ":"), prt 0 stmt])
-    SiterTwo expressionstmt1 expressionstmt2 stmt -> prPrec i 0 (concatD [doc (showString "for"), prt 0 expressionstmt1, prt 0 expressionstmt2, doc (showString ":"), prt 0 stmt])
-    SiterThree expressionstmt1 expressionstmt2 exp stmt -> prPrec i 0 (concatD [doc (showString "for"), prt 0 expressionstmt1, prt 0 expressionstmt2, prt 0 exp, doc (showString ":"), prt 0 stmt])
+    Swhile exp stmt -> prPrec i 0 (concatD [doc (showString "while"), prt 0 exp, doc (showString ":"), prt 0 stmt])
+    Sfor expressionstmt1 expressionstmt2 exp stmt -> prPrec i 0 (concatD [doc (showString "for"), prt 0 expressionstmt1, prt 0 expressionstmt2, prt 0 exp, doc (showString ":"), prt 0 stmt])
+    Sfornoinc expressionstmt1 expressionstmt2 stmt -> prPrec i 0 (concatD [doc (showString "for"), prt 0 expressionstmt1, prt 0 expressionstmt2, doc (showString ":"), prt 0 stmt])
 
 instance Print Expression_stmt where
   prt i e = case e of

@@ -41,9 +41,9 @@ data Compound_stmt = Scomp [Stmt]
   deriving (Eq, Ord, Show, Read)
 
 data Iter_stmt
-    = SiterOne Exp Stmt
-    | SiterTwo Expression_stmt Expression_stmt Stmt
-    | SiterThree Expression_stmt Expression_stmt Exp Stmt
+    = Swhile Exp Stmt
+    | Sfor Expression_stmt Expression_stmt Exp Stmt
+    | Sfornoinc Expression_stmt Expression_stmt Stmt
   deriving (Eq, Ord, Show, Read)
 
 data Expression_stmt = SexprEmpty | Sexpr Exp

@@ -14,8 +14,6 @@ data Program = Progr [Stmt]
 data Stmt
     = DeclS Decl_stmt
     | ExprS Expression_stmt
-    | SelS Selection_stmt
-    | IterS Iter_stmt
     | FlowS Flow_stmt
   deriving (Eq, Ord, Show, Read)
 
@@ -35,16 +33,7 @@ data Type
 data Decl_stmt = DeclFn Ident [Ident] Stmt
   deriving (Eq, Ord, Show, Read)
 
-data Iter_stmt
-    = SiterOne Exp Stmt
-    | SiterTwo Expression_stmt Expression_stmt Stmt
-    | SiterThree Expression_stmt Expression_stmt Exp Stmt
-  deriving (Eq, Ord, Show, Read)
-
 data Expression_stmt = SexprEmpty | Sexpr Exp
-  deriving (Eq, Ord, Show, Read)
-
-data Selection_stmt = Sif Exp Stmt | SifElse Exp Stmt Stmt
   deriving (Eq, Ord, Show, Read)
 
 data Flow_stmt = Scontinue | Sbreak | Sreturn Exp

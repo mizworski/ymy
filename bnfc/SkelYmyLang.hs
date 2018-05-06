@@ -45,9 +45,9 @@ transCompound_stmt x = case x of
   Scomp stmts -> failure x
 transIter_stmt :: Iter_stmt -> Result
 transIter_stmt x = case x of
-  SiterOne exp stmt -> failure x
-  SiterTwo expressionstmt1 expressionstmt2 stmt -> failure x
-  SiterThree expressionstmt1 expressionstmt2 exp stmt -> failure x
+  Swhile exp stmt -> failure x
+  Sfor expressionstmt1 expressionstmt2 exp stmt -> failure x
+  Sfornoinc expressionstmt1 expressionstmt2 stmt -> failure x
 transExpression_stmt :: Expression_stmt -> Result
 transExpression_stmt x = case x of
   SexprEmpty -> failure x

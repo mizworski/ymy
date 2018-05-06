@@ -94,10 +94,43 @@ evalExprStmt SexprEmpty = return (Tunit, Undefined)
 evalExprStmt (Sexpr expr) = evalExpr expr
 
 evalIterStmt :: Iter_stmt -> PartialResult TypedVal
-evalIterStmt stmt = return (Tint, Num 0)
+evalIterStmt (Swhile condExp stmt) = evalWhile condExp stmt
+evalIterStmt (Sfor initExpStmt condExpStmt incrExp evalStmt) = evalFor initExpStmt condExpStmt incrExp evalStmt
+evalIterStmt (Sfornoinc initExpStmt condExpStmt evalStmt) = evalFor initExpStmt condExpStmt (Econst $ Einteger 0) evalStmt
+
+evalWhile :: Exp -> Stmt -> PartialResult TypedVal
+evalWhile condExp stmt = do
+  (varType, val) <- evalExpr condExp
+  case val of
+    Boolean True -> do
+      res <- evalStmt stmt
+      evalWhile condExp stmt
+      return (Tunit, Undefined)
+    Boolean False -> do
+      return (Tunit, Undefined)
+    otherwise -> throwError "Condition must be bexpr."
+
+evalFor :: Expression_stmt -> Expression_stmt -> Exp -> Stmt -> PartialResult TypedVal
+evalFor initExpStmt (Sexpr condExp) incrExp evalStmt = do
+  res <- evalExprStmt initExpStmt
+  evalWhile condExp $ CompS $ Scomp $ evalStmt : (ExprS $ Sexpr incrExp) : []
+
 
 evalSelStmt :: Selection_stmt -> PartialResult TypedVal
-evalSelStmt stmt = return (Tint, Num 0)
+evalSelStmt (Sif condExp stmt) = evalIfElse condExp stmt $ ExprS $ SexprEmpty
+evalSelStmt (SifElse condExp stmtTrue stmtFalse) = evalIfElse condExp stmtTrue stmtFalse
+
+evalIfElse :: Exp -> Stmt -> Stmt -> PartialResult TypedVal
+evalIfElse condExp stmtTrue stmtFalse = do
+  (varType, val) <- evalExpr condExp
+  case val of
+    Boolean True -> do
+      res <- evalStmt stmtTrue
+      return (Tunit, Undefined)
+    Boolean False -> do
+      res <- evalStmt stmtFalse
+      return (Tunit, Undefined)
+    otherwise -> throwError "Condition must be bexpr."
 
 evalFlowStmt :: Flow_stmt -> PartialResult TypedVal
 evalFlowStmt stmt = return (Tint, Num 0)

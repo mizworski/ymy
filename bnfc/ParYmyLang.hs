@@ -1938,7 +1938,7 @@ action_165 (6) = happyGoto action_147
 action_165 (18) = happyGoto action_171
 action_165 _ = happyReduce_31
 
-action_166 _ = happyReduce_36
+action_166 _ = happyReduce_37
 
 action_167 (47) = happyShift action_25
 action_167 (51) = happyShift action_26
@@ -2047,7 +2047,7 @@ action_169 (41) = happyGoto action_23
 action_169 (42) = happyGoto action_24
 action_169 _ = happyFail
 
-action_170 _ = happyReduce_37
+action_170 _ = happyReduce_36
 
 action_171 _ = happyReduce_33
 
@@ -2362,22 +2362,11 @@ happyReduction_35 ((HappyAbsSyn10  happy_var_4) `HappyStk`
 	_ `HappyStk`
 	happyRest)
 	 = HappyAbsSyn20
-		 (AbsYmyLang.SiterOne happy_var_2 happy_var_4
+		 (AbsYmyLang.Swhile happy_var_2 happy_var_4
 	) `HappyStk` happyRest
 
-happyReduce_36 = happyReduce 5 20 happyReduction_36
-happyReduction_36 ((HappyAbsSyn10  happy_var_5) `HappyStk`
-	_ `HappyStk`
-	(HappyAbsSyn21  happy_var_3) `HappyStk`
-	(HappyAbsSyn21  happy_var_2) `HappyStk`
-	_ `HappyStk`
-	happyRest)
-	 = HappyAbsSyn20
-		 (AbsYmyLang.SiterTwo happy_var_2 happy_var_3 happy_var_5
-	) `HappyStk` happyRest
-
-happyReduce_37 = happyReduce 6 20 happyReduction_37
-happyReduction_37 ((HappyAbsSyn10  happy_var_6) `HappyStk`
+happyReduce_36 = happyReduce 6 20 happyReduction_36
+happyReduction_36 ((HappyAbsSyn10  happy_var_6) `HappyStk`
 	_ `HappyStk`
 	(HappyAbsSyn25  happy_var_4) `HappyStk`
 	(HappyAbsSyn21  happy_var_3) `HappyStk`
@@ -2385,7 +2374,18 @@ happyReduction_37 ((HappyAbsSyn10  happy_var_6) `HappyStk`
 	_ `HappyStk`
 	happyRest)
 	 = HappyAbsSyn20
-		 (AbsYmyLang.SiterThree happy_var_2 happy_var_3 happy_var_4 happy_var_6
+		 (AbsYmyLang.Sfor happy_var_2 happy_var_3 happy_var_4 happy_var_6
+	) `HappyStk` happyRest
+
+happyReduce_37 = happyReduce 5 20 happyReduction_37
+happyReduction_37 ((HappyAbsSyn10  happy_var_5) `HappyStk`
+	_ `HappyStk`
+	(HappyAbsSyn21  happy_var_3) `HappyStk`
+	(HappyAbsSyn21  happy_var_2) `HappyStk`
+	_ `HappyStk`
+	happyRest)
+	 = HappyAbsSyn20
+		 (AbsYmyLang.Sfornoinc happy_var_2 happy_var_3 happy_var_5
 	) `HappyStk` happyRest
 
 happyReduce_38 = happySpecReduce_1  21 happyReduction_38

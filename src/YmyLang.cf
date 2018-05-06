@@ -38,12 +38,12 @@ separator Ident "," ;
 
 Scomp.   Compound_stmt ::= "{" [Stmt] "}" ;
 
-SiterOne.   Iter_stmt ::= "while" Exp ":" Stmt;
-SiterTwo.   Iter_stmt ::= "for" Expression_stmt Expression_stmt ":" Stmt ;
-SiterThree. Iter_stmt ::= "for" Expression_stmt Expression_stmt Exp ":" Stmt;
+Swhile.      Iter_stmt ::= "while" Exp ":" Stmt;
+Sfor.        Iter_stmt ::= "for" Expression_stmt Expression_stmt Exp ":" Stmt;
+Sfornoinc.   Iter_stmt ::= "for" Expression_stmt Expression_stmt ":" Stmt ;
 
 SexprEmpty.   	Expression_stmt ::= ";" ;
-Sexpr.   	Expression_stmt ::= Exp ";" ;
+Sexpr.   	    Expression_stmt ::= Exp ";" ;
 
 Sif.        Selection_stmt ::= "if" Exp ":" Stmt ;
 SifElse.    Selection_stmt ::= "if" Exp ":" Stmt "else" ":" Stmt ;

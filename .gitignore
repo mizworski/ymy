@@ -3,6 +3,6 @@
 ymy.cabal
 cabal.config
 bnfc/*.bak
-bngc/*.txt
+bnfc/*.txt
 *~
 interpreter
