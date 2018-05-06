@@ -101,7 +101,23 @@ evalExpr (Eassign e1 op e2) = do
   return newVal
 evalExpr (Econst const) = evalConst const
 evalExpr (Evar ident) = evalVar ident
-evalExpr expr = return (Tint, Num 0)
+evalExpr (Eplus e1 e2) = evalBinOpInt e1 e2 (+)
+evalExpr (Eminus e1 e2) = evalBinOpInt e1 e2 (-)
+evalExpr (Etimes e1 e2) = evalBinOpInt e1 e2 (*)
+evalExpr (Ediv e1 e2) = do
+  (Tint, Num v1) <- evalExpr e1
+  (Tint, Num v2) <- evalExpr e2
+  case v2 of
+    0 -> throwError "Division by zero."
+    otherwise -> return $ (Tint, Num $ v1 `div` v2)
+evalExpr (Emod e1 e2) = do
+  (Tint, Num v1) <- evalExpr e1
+  (Tint, Num v2) <- evalExpr e2
+  case v2 of
+    0 -> throwError "Modulo by zero."
+    otherwise -> return $ (Tint, Num $ v1 `mod` v2)
+
+--evalExpr expr = return (Tint, Num 0)
 
 evalConst :: Constant -> PartialResult TypedVal
 evalConst (Einteger  int) = return (Tint, Num int)
@@ -113,6 +129,12 @@ evalVar ident = do
   loc <- getloc (Evar ident)
   getval loc
 
+evalBinOpInt :: Exp -> Exp -> (Integer -> Integer -> Integer) -> PartialResult TypedVal
+evalBinOpInt e1 e2 op = do
+  (Tint, Num v1) <- evalExpr e1
+  (Tint, Num v2) <- evalExpr e2
+  return $ (Tint, Num $ op v1 v2)
+
 evalIterStmt :: Iter_stmt -> PartialResult TypedVal
 evalIterStmt stmt = return (Tint, Num 0)
 
@@ -123,7 +145,10 @@ evalFlowStmt :: Flow_stmt -> PartialResult TypedVal
 evalFlowStmt stmt = return (Tint, Num 0)
 
 evalPrintStmt :: Print_stmt -> PartialResult TypedVal
-evalPrintStmt stmt = return (Tint, Num 0)
+evalPrintStmt (Sprint exp) = do
+  (varType, val) <- evalExpr exp
+  lift $ lift $ lift $ putStrLn $ show val
+  return (varType, val)
 
 runDecl :: Decl_stmt -> PartialResult Env
 runDecl (DeclVar (Declarator identifier varType)) = declare identifier varType
@@ -173,8 +198,8 @@ getval :: Loc -> PartialResult TypedVal
 getval loc = do
   store <- get
   case Data.Map.lookup loc store of
-    Nothing -> throwError "Internal Error - invalid loc."
-    Just (_, Undefined) -> throwError "Undefinded var."
+    Nothing -> throwError $ "Internal Error - invalid loc: " ++ show loc
+    Just (_, Undefined) -> throwError $ "Undefinded var at loc: " ++ show loc
     Just val -> return val
 deepCopy :: TypedVal -> PartialResult TypedVal
 deepCopy val = return val
