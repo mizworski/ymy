@@ -1,0 +1,18 @@
+f :: Int -> Int;
+g :: Int -> Int;
+def f(x): {
+    h :: Int -> Unit;
+    x = 5;
+    def g(x): {
+    	x = 1;
+    	def h(x): x = x*3; 
+	return h(x);
+    }
+    x = h(x);
+    def h(x): if x == 0: return 0; else: return x * h(x-1);
+    // factorial - note, it uses the right h (the new one, not the old one)
+    
+    g(5);
+}
+
+print f(1);

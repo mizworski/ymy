@@ -1,0 +1,63 @@
+// len :: [Int] -> Int
+
+map :: (Int -> Int) -> [Int] -> [Int];
+def map(f, a): {
+    i :: Int;
+    i = 0;
+    for i = 0; i < len(a); i++: 
+        a[i] = f(a[i]);
+    
+    return a;
+}
+
+reduce :: (Int -> Int -> Int) -> [Int] -> Int;
+def reduce(f, a): {
+        acc :: Int; 
+        acc = arr[0];
+        i :: Int; 
+        for i = 1; i < len(arr); i++: 
+            acc = f(a[i], acc);
+
+        return acc;
+}
+
+filter :: (Int -> Bool) -> [Int] -> [Int];
+def filter (predicate, a): {
+    res :: [Int]; 
+    res = [];
+    i :: Int; 
+    for i = 0; i < len(a); i++: 
+        if predicate(a[i]):
+            res += [ a[i] ];
+    
+    return res;
+}
+
+
+
+
+a :: [Int];
+a = [1, 2, 3];
+print "a: " + a; 
+
+print " ^2 ";
+a = map (lambda x :: Int : x * x, a);
+print "a: " + a;
+
+print " *3 ";
+a = map (lambda x :: Int : x * 3, a);
+print "a: " + a; 
+
+print "Odd elements: " + filter (lambda x :: Int : x % 2 == 0, a);
+
+// jeśli czas pozwoli - dorobię jeszcze częściową aplikację
+// max :: [Int] -> Int;
+// min :: [Int] -> Int;
+// sum :: [Int] -> Int;
+// max = reduce (lambda x :: Int : lambda y :: Int : if x > y then x else y);
+// min = reduce (lambda x :: Int : lambda y :: Int : if x < y then x else y);
+// sum = reduce (lambda x :: Int : lambda y :: Int : x + y);
+
+//print "Max: " + max(a);
+//print "Min: " + min(a);
+//print "Sum: " + sum(a);

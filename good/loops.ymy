@@ -1,0 +1,23 @@
+i :: Int;
+notFalse :: Bool;
+notFalse = True;
+
+while notFalse: {
+    i++;
+	print i;
+
+    if not i < 5:
+        break;
+}
+
+i = 0;
+for ; ; : {
+    i++;
+    if i % 2 == 0: 
+        continue;
+    else:
+        print 2 * i;
+}
+
+for i = 0; i < 10; i++: print i % 2 == 0;
+
