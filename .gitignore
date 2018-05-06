@@ -2,6 +2,7 @@
 .idea/
 ymy.cabal
 cabal.config
-bnfc/
+bnfc/*.bak
+bngc/*.txt
 *~
 interpreter
