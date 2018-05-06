@@ -26,15 +26,15 @@ interpret env store program = do
       hPutStrLn stderr $ "Type error: " ++ e
       return (env, store)
     otherwise -> do
-      putStrLn $ show program
+--      putStrLn $ show program
       res <- runExceptT $ runProg env store program
       case res of
         (Left e) -> do
           hPutStrLn stderr $ "Runtime error: " ++ e
           return (env, store)
         (Right (env', store')) -> do
-          putStrLn $ show env'
-          putStrLn $ show store'
+--          putStrLn $ show env'
+--          putStrLn $ show store'
           return (env', store')
 
 
@@ -99,6 +99,18 @@ evalExpr (Eassign e1 op e2) = do
     AssignSub -> evalExpr $ Eminus e1 e2
   assign e1 newVal
   return newVal
+
+evalExpr (Econdition be e1 e2) = do
+  (Tbool, Boolean b) <- evalExpr be
+  case b of
+    True -> do
+      res <- evalExpr e1
+      return res
+      -- dlaczego nie moge zrobic return evalExpr e1?
+    False -> do
+      res <- evalExpr e2
+      return res
+
 evalExpr (Econst const) = evalConst const
 evalExpr (Evar ident) = evalVar ident
 evalExpr (Eplus e1 e2) = evalBinOpInt e1 e2 (+)
@@ -117,12 +129,22 @@ evalExpr (Emod e1 e2) = do
     0 -> throwError "Modulo by zero."
     otherwise -> return $ (Tint, Num $ v1 `mod` v2)
 
---evalExpr expr = return (Tint, Num 0)
+evalExpr (Elor be1 be2) = evalBinOpBool be1 be2 (||)
+evalExpr (Eland be1 be2) = evalBinOpBool be1 be2 (&&)
+evalExpr (Eeq e1 e2) = evalBinOpIntBool e1 e2 (==)
+evalExpr (Eneq e1 e2) = evalBinOpIntBool e1 e2 (/=)
+evalExpr (Elthen e1 e2) = evalBinOpIntBool e1 e2 (<)
+evalExpr (Ele e1 e2) = evalBinOpIntBool e1 e2 (<=)
+evalExpr (Egrthen e1 e2) = evalBinOpIntBool e1 e2 (>)
+evalExpr (Ege e1 e2) = evalBinOpIntBool e1 e2 (>=)
 
 evalConst :: Constant -> PartialResult TypedVal
 evalConst (Einteger  int) = return (Tint, Num int)
-evalConst (Ebool bool) = return (Tbool, Bool bool)
 evalConst (Estring str) = return (Tstring, Str str)
+evalConst boolean =
+  case boolean of
+    Etrue -> return (Tbool, Boolean True)
+    Efalse -> return (Tbool, Boolean False)
 
 evalVar :: Ident -> PartialResult TypedVal
 evalVar ident = do
@@ -134,6 +156,18 @@ evalBinOpInt e1 e2 op = do
   (Tint, Num v1) <- evalExpr e1
   (Tint, Num v2) <- evalExpr e2
   return $ (Tint, Num $ op v1 v2)
+
+evalBinOpBool :: Exp -> Exp -> (Bool -> Bool -> Bool) -> PartialResult TypedVal
+evalBinOpBool e1 e2 op = do
+  (Tbool, Boolean v1) <- evalExpr e1
+  (Tbool, Boolean v2) <- evalExpr e2
+  return $ (Tbool, Boolean $ op v1 v2)
+
+evalBinOpIntBool :: Exp -> Exp -> (Integer -> Integer -> Bool) -> PartialResult TypedVal
+evalBinOpIntBool e1 e2 op = do
+  (Tint, Num v1) <- evalExpr e1
+  (Tint, Num v2) <- evalExpr e2
+  return $ (Tbool, Boolean $ op v1 v2)
 
 evalIterStmt :: Iter_stmt -> PartialResult TypedVal
 evalIterStmt stmt = return (Tint, Num 0)

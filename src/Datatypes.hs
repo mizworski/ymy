@@ -18,11 +18,17 @@ type Function = (Env, [Ident], Stmt)
 
 data Val
   = Num Integer
-  | Bool Boolean
+  | Boolean Bool
   | Str String
   | Fun Function
   | Undefined
-  deriving (Show)
+
+instance Show Val where
+  show (Num n) = show n
+  show (Boolean b) = show b
+  show (Str str) = str
+  show (Fun fn) = show fn
+  show Undefined = "Undefined"
 
 type Store = Data.Map.Map Loc TypedVal
 

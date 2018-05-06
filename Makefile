@@ -1,5 +1,9 @@
 default: build
 
+install-deps:
+	cabal update; \
+	cabal install mtl
+
 build:
 	mkdir -p bnfc; \
 	bnfc src/YmyLang.cf -o bnfc; \
