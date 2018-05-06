@@ -179,7 +179,7 @@ instance Print [Exp] where
 instance Print Exp where
   prt i e = case e of
     Elambda decs exp -> prPrec i 1 (concatD [doc (showString "lambda"), prt 0 decs, doc (showString ":"), prt 0 exp])
-    Eassign exp1 assignmentop exp2 -> prPrec i 2 (concatD [prt 14 exp1, prt 0 assignmentop, prt 0 exp2])
+    Eassign exp1 assignmentop exp2 -> prPrec i 2 (concatD [prt 12 exp1, prt 0 assignmentop, prt 0 exp2])
     Econdition exp1 exp2 exp3 -> prPrec i 3 (concatD [prt 4 exp1, doc (showString "?"), prt 0 exp2, doc (showString ":"), prt 3 exp3])
     Elor exp1 exp2 -> prPrec i 4 (concatD [prt 4 exp1, doc (showString "or"), prt 5 exp2])
     Eland exp1 exp2 -> prPrec i 5 (concatD [prt 5 exp1, doc (showString "and"), prt 6 exp2])
@@ -199,10 +199,10 @@ instance Print Exp where
     Epreopexp unaryexpoperator exp -> prPrec i 11 (concatD [prt 0 unaryexpoperator, prt 10 exp])
     Epostinc exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "++")])
     Epostdec exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "--")])
-    Efunkpar exp exps -> prPrec i 13 (concatD [prt 13 exp, doc (showString "("), prt 0 exps, doc (showString ")")])
-    Earrayget exp1 exp2 -> prPrec i 14 (concatD [prt 14 exp1, doc (showString "["), prt 9 exp2, doc (showString "]")])
-    Evar id -> prPrec i 15 (concatD [prt 0 id])
-    Econst constant -> prPrec i 15 (concatD [prt 0 constant])
+    Efunkpar exp exps -> prPrec i 12 (concatD [prt 13 exp, doc (showString "("), prt 0 exps, doc (showString ")")])
+    Earrayget exp1 exp2 -> prPrec i 12 (concatD [prt 13 exp1, doc (showString "["), prt 9 exp2, doc (showString "]")])
+    Evar id -> prPrec i 13 (concatD [prt 0 id])
+    Econst constant -> prPrec i 13 (concatD [prt 0 constant])
   prtList _ [] = concatD []
   prtList _ [x] = concatD [prt 0 x]
   prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
