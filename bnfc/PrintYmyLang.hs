@@ -200,8 +200,8 @@ instance Print Exp where
     Epreopexp unaryexpoperator exp -> prPrec i 11 (concatD [prt 0 unaryexpoperator, prt 10 exp])
     Epostinc exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "++")])
     Epostdec exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "--")])
-    Efunkpar exp exps -> prPrec i 12 (concatD [prt 13 exp, doc (showString "("), prt 0 exps, doc (showString ")")])
-    Earrayget exp1 exp2 -> prPrec i 12 (concatD [prt 13 exp1, doc (showString "["), prt 9 exp2, doc (showString "]")])
+    Efunkpar exp exps -> prPrec i 12 (concatD [prt 12 exp, doc (showString "("), prt 0 exps, doc (showString ")")])
+    Earrayget exp1 exp2 -> prPrec i 12 (concatD [prt 12 exp1, doc (showString "["), prt 9 exp2, doc (showString "]")])
     Evar id -> prPrec i 13 (concatD [prt 0 id])
     Econst constant -> prPrec i 13 (concatD [prt 0 constant])
   prtList _ [] = concatD []

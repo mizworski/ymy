@@ -54,7 +54,7 @@ evalExpr (Eplus e1 e2) = do
           -- moge to zrobic jakos inaczej?
           Tint -> return $ (Tint, Num $ (+) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
           (Tarray _) -> return $ (t1, Arr $ ((\(Arr xs) -> xs) v1) ++ (((\(Arr xs) -> xs) v2)))
-      False -> throwError "Invalid types."
+      False -> throwError "Invalid types1."
 
 -- to tez wyglada okropnie
 evalExpr (Etimes e1 e2) = do
@@ -64,14 +64,14 @@ evalExpr (Etimes e1 e2) = do
       True -> do
         case t1 of
           Tint -> return $ (Tint, Num $ (+) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
-          otherwise -> throwError "Invalid types."
+          otherwise -> throwError "Invalid types2."
       False -> do
         case t1 of
           (Tarray _) -> return $ (t1, Arr $ duplicateArr ((\(Arr xs) -> xs) v1) (((\(Num x) -> x) v2)) [])
           otherwise -> do
             case t2 of
-              (Tarray _) -> return $ (t1, Arr $ duplicateArr ((\(Arr xs) -> xs) v2) (((\(Num x) -> x) v1)) [])
-              otherwise -> throwError "Invalid types."
+              (Tarray _) -> return $ (t2, Arr $ duplicateArr ((\(Arr xs) -> xs) v2) (((\(Num x) -> x) v1)) [])
+              otherwise -> throwError "Invalid types3."
 
 evalExpr (Eminus e1 e2) = evalBinOpInt e1 e2 (-)
 evalExpr (Ediv e1 e2) = do
@@ -170,3 +170,41 @@ multiplyArray a e = do
 duplicateArr :: [a] -> Integer -> [a] -> [a]
 duplicateArr arr 0 acc = acc
 duplicateArr arr mul acc = duplicateArr arr (mul - 1) (arr ++ acc)
+
+
+assign :: Exp -> TypedVal -> PartialResult ()
+assign (Evar ident) typedVal = do
+  loc <- getloc $ Evar ident
+  val <- deepCopy typedVal
+  modify $ Data.Map.insert loc typedVal
+
+assign (Earrayget lvalue ind) (valType, assignVal)= do
+  loc <- getloc $ Earrayget lvalue ind
+  (Tarray arrType, Arr oldArr) <- getArray $ Earrayget lvalue ind
+  reversed_indices <- getIndices $ Earrayget lvalue ind
+  indices <- return $ reverse reversed_indices
+  newArr <- modifyArray indices (oldArr) assignVal
+  modify $ Data.Map.insert loc (Tarray arrType, newArr)
+
+modifyArray :: [Integer] -> [Val] -> Val -> PartialResult Val
+
+modifyArray (id:[]) oldArray newVal = do
+  (ls, _:rs) <- return $ splitAt (fromIntegral id) oldArray
+  return $ Arr $ ls ++ newVal : rs
+
+modifyArray (id:indices) oldArray newVal = do
+  (ls, (Arr subArr):rs) <- return $ splitAt (fromIntegral id) oldArray
+  modifiedSubArray <- modifyArray indices subArr newVal
+  return $ Arr $ ls ++ modifiedSubArray : rs
+
+
+getArray :: Exp -> PartialResult TypedVal
+getArray (Earrayget lvalue ind) = getArray lvalue
+getArray arrName = evalExpr arrName
+
+getIndices :: Exp -> PartialResult [Integer]
+getIndices (Earrayget lvalue indExpr) = do
+  (Tint, Num ind) <- evalExpr indExpr
+  indices <- getIndices lvalue
+  return $ ind : indices
+getIndices arrName = return []

@@ -43,19 +43,14 @@ hNewloc loc store =
     Nothing -> loc
     otherwise -> hNewloc (loc + 1) store
 
-assign :: Exp -> TypedVal -> PartialResult ()
-assign lvalue typedVal = do
-  loc <- getloc lvalue
-  val <- deepCopy typedVal
-  modify $ Data.Map.insert loc typedVal
-
-
 getloc :: Exp -> PartialResult Loc
 getloc (Evar ident) = do
   env <- ask
   case lookup ident env of
     Nothing -> throwError "Undeclared var."
     Just loc -> return loc
+
+getloc (Earrayget lvalue ind) = getloc lvalue
 
 getval :: Loc -> PartialResult TypedVal
 getval loc = do

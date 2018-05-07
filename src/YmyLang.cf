@@ -78,8 +78,8 @@ Earray.      Exp11 ::= "[" [Exp] "]" ;
 Epreopexp.   Exp11 ::= Unary_exp_operator Exp10;
 Epostinc.    Exp12 ::= Exp12 "++";
 Epostdec.    Exp12 ::= Exp12 "--";
-Efunkpar.    Exp12 ::= Exp13 "(" [Exp] ")";
-Earrayget.   Exp12 ::= Exp13 "[" Exp9 "]" ;
+Efunkpar.    Exp12 ::= Exp12 "(" [Exp] ")";
+Earrayget.   Exp12 ::= Exp12 "[" Exp9 "]" ;
 Evar.        Exp13 ::= Ident;
 Econst.      Exp13 ::= Constant;
 
