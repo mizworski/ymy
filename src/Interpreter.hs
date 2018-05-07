@@ -16,10 +16,12 @@ import qualified Data.Map
 import Control.Monad.State
 import Control.Monad.Reader
 import Control.Monad.Except
+import Control.Monad.Cont
 
 import System.IO
 import System.Environment
 
+-- nie musze przekazywac enva breakow, continue, returnow, bo kazda definicja funkcji, petla jest wczytywana na raz
 interpret :: Env -> Store -> Program -> IO((Env, Store))
 interpret env store program = do
   checkRes <- runExceptT $ typeCheck env store program
@@ -36,7 +38,7 @@ interpret env store program = do
           return (env, store)
         (Right (env', store')) -> do
           putStrLn $ show env'
-          putStrLn $ show store'
+          putStrLn $ showStore store'
           return (env', store')
 
 
@@ -133,7 +135,16 @@ evalIfElse condExp stmtTrue stmtFalse = do
     otherwise -> throwError "Condition must be bexpr."
 
 evalFlowStmt :: Flow_stmt -> PartialResult TypedVal
+evalFlowStmt Scontinue = evalContinue
+evalFlowStmt Sbreak = evalBreak
 evalFlowStmt stmt = return (Tint, Num 0)
+
+evalContinue :: PartialResult TypedVal
+evalContinue = return (Tint, Num 0)
+
+evalBreak:: PartialResult TypedVal
+evalBreak = return (Tint, Num 0)
+
 
 evalPrintStmt :: Print_stmt -> PartialResult TypedVal
 evalPrintStmt (Sprint exp) = do

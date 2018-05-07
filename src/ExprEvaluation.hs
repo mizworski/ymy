@@ -28,6 +28,7 @@ evalExpr (Eassign e1 op e2) = do
     AssignAdd -> evalExpr $ Eplus e1 e2
     AssignSub -> evalExpr $ Eminus e1 e2
   assign e1 newVal
+  -- todo check types
   return newVal
 
 evalExpr (Econdition be e1 e2) = do
@@ -43,9 +44,36 @@ evalExpr (Econdition be e1 e2) = do
 
 evalExpr (Econst const) = evalConst const
 evalExpr (Evar ident) = evalVar ident
-evalExpr (Eplus e1 e2) = evalBinOpInt e1 e2 (+)
+evalExpr (Eplus e1 e2) = do
+    (t1, v1) <- evalExpr e1
+    (t2, v2) <- evalExpr e2
+    case t1 == t2 of
+      True -> do
+        case t1 of
+          -- to odpakowywanie jest jakims koszmarem, ale musialem tak zrobic aby uniknac dwukrotnej ewaliacji expra
+          -- moge to zrobic jakos inaczej?
+          Tint -> return $ (Tint, Num $ (+) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
+          (Tarray _) -> return $ (t1, Arr $ ((\(Arr xs) -> xs) v1) ++ (((\(Arr xs) -> xs) v2)))
+      False -> throwError "Invalid types."
+
+-- to tez wyglada okropnie
+evalExpr (Etimes e1 e2) = do
+    (t1, v1) <- evalExpr e1
+    (t2, v2) <- evalExpr e2
+    case t1 == t2 of
+      True -> do
+        case t1 of
+          Tint -> return $ (Tint, Num $ (+) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
+          otherwise -> throwError "Invalid types."
+      False -> do
+        case t1 of
+          (Tarray _) -> return $ (t1, Arr $ duplicateArr ((\(Arr xs) -> xs) v1) (((\(Num x) -> x) v2)) [])
+          otherwise -> do
+            case t2 of
+              (Tarray _) -> return $ (t1, Arr $ duplicateArr ((\(Arr xs) -> xs) v2) (((\(Num x) -> x) v1)) [])
+              otherwise -> throwError "Invalid types."
+
 evalExpr (Eminus e1 e2) = evalBinOpInt e1 e2 (-)
-evalExpr (Etimes e1 e2) = evalBinOpInt e1 e2 (*)
 evalExpr (Ediv e1 e2) = do
   (Tint, Num v1) <- evalExpr e1
   (Tint, Num v2) <- evalExpr e2
@@ -77,6 +105,21 @@ evalExpr (Epreopexp op e) = do
   case op of
     Plus -> return (Tint, Num v)
     Negative -> return (Tint, Num $ -v)
+
+evalExpr (Earray []) = return (Tarray Tany, Arr [])
+evalExpr (Earray (e:es)) = do
+  (headType, headVal) <- evalExpr e
+  (Tarray tailType, Arr tailVal) <- evalExpr $ Earray es
+  case headType == tailType || tailType == Tany of
+    True -> return (Tarray headType, Arr (headVal:tailVal))
+    False -> throwError "Array types mismatch."
+
+evalExpr (Earrayget arrExp indExp) = do
+  (Tint, Num ind)<- evalExpr indExp
+  (Tarray elType, Arr arr) <- evalExpr arrExp
+  case compare (toInteger $ length arr) ind of
+    GT -> return (elType, arr !! (fromIntegral ind))
+    otherwise -> throwError "Index out of range."
 
 evalExpr (Epostinc e) = do
   (Tint, Num v) <- evalExpr e
@@ -117,3 +160,13 @@ evalBinOpIntBool e1 e2 op = do
   (Tint, Num v1) <- evalExpr e1
   (Tint, Num v2) <- evalExpr e2
   return $ (Tbool, Boolean $ op v1 v2)
+
+multiplyArray :: [Exp] -> Exp -> PartialResult TypedVal
+multiplyArray a e = do
+  (Tint, Num mul) <- evalExpr e
+  (Tarray aType, Arr xs) <- evalExpr $ Earray a
+  return (Tarray aType, Arr $ duplicateArr xs mul [])
+
+duplicateArr :: [a] -> Integer -> [a] -> [a]
+duplicateArr arr 0 acc = acc
+duplicateArr arr mul acc = duplicateArr arr (mul - 1) (arr ++ acc)

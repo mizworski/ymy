@@ -21,6 +21,7 @@ Tarray.		Type2 ::= "[" Type2 "]";
 Tint.		Type2 ::= "Int";
 Tbool.		Type2 ::= "Bool";
 Tstring.	Type2 ::= "String";
+Tany.       Type2 ::= "Any";
 
 -- trochę obejście ale nie chciałem pozwolić na zdefiniowanie (Int), bo nie planuję implementować tupli
 -- nie wiem też czy ta konstrukcja jest wymagana, bo mógłbym zostawić bez nawiasów,
@@ -73,7 +74,7 @@ Eminus.      Exp9  ::= Exp9 "-" Exp10;
 Etimes.      Exp10 ::= Exp10 "*" Exp11;
 Ediv.        Exp10 ::= Exp10 "/" Exp11;
 Emod.        Exp10 ::= Exp10 "%" Exp11;
-Earray.      Exp10 ::= "[" [Exp] "]" ;
+Earray.      Exp11 ::= "[" [Exp] "]" ;
 Epreopexp.   Exp11 ::= Unary_exp_operator Exp10;
 Epostinc.    Exp12 ::= Exp12 "++";
 Epostdec.    Exp12 ::= Exp12 "--";

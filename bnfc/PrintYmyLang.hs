@@ -125,6 +125,7 @@ instance Print Type where
     Tint -> prPrec i 2 (concatD [doc (showString "Int")])
     Tbool -> prPrec i 2 (concatD [doc (showString "Bool")])
     Tstring -> prPrec i 2 (concatD [doc (showString "String")])
+    Tany -> prPrec i 2 (concatD [doc (showString "Any")])
     Tfun type_1 type_2 -> prPrec i 0 (concatD [doc (showString "("), prt 0 type_1, doc (showString "->"), prt 0 type_2, doc (showString ")")])
     Tfunarg type_1 type_2 -> prPrec i 2 (concatD [prt 0 type_1, doc (showString "->"), prt 0 type_2])
 
@@ -195,7 +196,7 @@ instance Print Exp where
     Etimes exp1 exp2 -> prPrec i 10 (concatD [prt 10 exp1, doc (showString "*"), prt 11 exp2])
     Ediv exp1 exp2 -> prPrec i 10 (concatD [prt 10 exp1, doc (showString "/"), prt 11 exp2])
     Emod exp1 exp2 -> prPrec i 10 (concatD [prt 10 exp1, doc (showString "%"), prt 11 exp2])
-    Earray exps -> prPrec i 10 (concatD [doc (showString "["), prt 0 exps, doc (showString "]")])
+    Earray exps -> prPrec i 11 (concatD [doc (showString "["), prt 0 exps, doc (showString "]")])
     Epreopexp unaryexpoperator exp -> prPrec i 11 (concatD [prt 0 unaryexpoperator, prt 10 exp])
     Epostinc exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "++")])
     Epostdec exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "--")])

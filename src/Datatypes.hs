@@ -21,6 +21,7 @@ data Val
   | Boolean Bool
   | Str String
   | Fun Function
+  | Arr [Val]
   | Undefined
 
 instance Show Val where
@@ -28,6 +29,7 @@ instance Show Val where
   show (Boolean b) = show b
   show (Str str) = str
   show (Fun fn) = show fn
+  show (Arr xs) = show xs
   show Undefined = "Undefined"
 
 type Store = Data.Map.Map Loc TypedVal
@@ -38,4 +40,5 @@ showStore :: Store -> String
 showStore store = do
   Data.Map.foldr (\tval acc -> ((show tval) ++ "\n" ++ acc)) "" store
 
+--type PartialResult a = StateT Store (ReaderT Env Result) a
 type PartialResult a = StateT Store (ReaderT Env Result) a

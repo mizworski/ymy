@@ -34,6 +34,7 @@ transType x = case x of
   Tint -> failure x
   Tbool -> failure x
   Tstring -> failure x
+  Tany -> failure x
   Tfun type_1 type_2 -> failure x
   Tfunarg type_1 type_2 -> failure x
 transDecl_stmt :: Decl_stmt -> Result

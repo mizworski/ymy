@@ -30,6 +30,7 @@ data Type
     | Tint
     | Tbool
     | Tstring
+    | Tany
     | Tfun Type Type
     | Tfunarg Type Type
   deriving (Eq, Ord, Show, Read)
