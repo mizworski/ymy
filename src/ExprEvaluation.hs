@@ -114,6 +114,24 @@ evalExpr (Earray (e:es)) = do
     True -> return (Tarray headType, Arr (headVal:tailVal))
     False -> throwError "Array types mismatch."
 
+hArrComma :: [Val] -> [Exp] -> PartialResult Val
+hArrComma arr (idExpr:[]) = do
+  (Tint, Num id) <- evalExpr idExpr
+  case compare (toInteger $ length arr) id of
+    GT -> return $ arr !! (fromIntegral id)
+    otherwise -> throwError "Index out of range."
+
+hArrComma arr (idExpr:idExprs) = do
+  (Tint, Num id) <- evalExpr idExpr
+  case compare (toInteger $ length arr) id of
+    GT -> hArrComma ((\(Arr arr) -> arr) (arr !! (fromIntegral id))) idExprs
+    otherwise -> throwError "Index out of range."
+
+evalExpr (Earrgetcom arrExp indices) = do
+  (Tarray elType, Arr arr) <- evalExpr arrExp
+  res <- hArrComma arr indices
+  return $ (Tarray elType, res)
+
 evalExpr (Earrayget arrExp indExp) = do
   (Tint, Num ind)<- evalExpr indExp
   (Tarray elType, Arr arr) <- evalExpr arrExp
@@ -178,7 +196,7 @@ assign (Evar ident) typedVal = do
   val <- deepCopy typedVal
   modify $ Data.Map.insert loc typedVal
 
-assign (Earrayget lvalue ind) (valType, assignVal)= do
+assign (Earrayget lvalue ind) (valType, assignVal) = do
   loc <- getloc $ Earrayget lvalue ind
   (Tarray arrType, Arr oldArr) <- getArray $ Earrayget lvalue ind
   reversed_indices <- getIndices $ Earrayget lvalue ind
@@ -197,7 +215,6 @@ modifyArray (id:indices) oldArray newVal = do
   modifiedSubArray <- modifyArray indices subArr newVal
   return $ Arr $ ls ++ modifiedSubArray : rs
 
-
 getArray :: Exp -> PartialResult TypedVal
 getArray (Earrayget lvalue ind) = getArray lvalue
 getArray arrName = evalExpr arrName
@@ -208,3 +225,4 @@ getIndices (Earrayget lvalue indExpr) = do
   indices <- getIndices lvalue
   return $ ind : indices
 getIndices arrName = return []
+

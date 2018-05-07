@@ -96,6 +96,7 @@ transExp x = case x of
   Epostdec exp -> failure x
   Efunkpar exp exps -> failure x
   Earrayget exp1 exp2 -> failure x
+  Earrgetcom exp exps -> failure x
   Evar ident -> failure x
   Econst constant -> failure x
 transUnary_exp_operator :: Unary_exp_operator -> Result

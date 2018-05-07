@@ -202,8 +202,12 @@ instance Print Exp where
     Epostdec exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "--")])
     Efunkpar exp exps -> prPrec i 12 (concatD [prt 12 exp, doc (showString "("), prt 0 exps, doc (showString ")")])
     Earrayget exp1 exp2 -> prPrec i 12 (concatD [prt 12 exp1, doc (showString "["), prt 9 exp2, doc (showString "]")])
+    Earrgetcom exp exps -> prPrec i 12 (concatD [prt 12 exp, doc (showString "["), prt 9 exps, doc (showString "]")])
     Evar id -> prPrec i 13 (concatD [prt 0 id])
     Econst constant -> prPrec i 13 (concatD [prt 0 constant])
+  prtList 9 [] = concatD []
+  prtList 9 [x] = concatD [prt 9 x]
+  prtList 9 (x:xs) = concatD [prt 9 x, doc (showString ","), prt 9 xs]
   prtList _ [] = concatD []
   prtList _ [x] = concatD [prt 0 x]
   prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]

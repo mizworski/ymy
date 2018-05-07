@@ -86,6 +86,7 @@ data Exp
     | Epostdec Exp
     | Efunkpar Exp [Exp]
     | Earrayget Exp Exp
+    | Earrgetcom Exp [Exp]
     | Evar Ident
     | Econst Constant
   deriving (Eq, Ord, Show, Read)

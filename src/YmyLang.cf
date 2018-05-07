@@ -80,6 +80,7 @@ Epostinc.    Exp12 ::= Exp12 "++";
 Epostdec.    Exp12 ::= Exp12 "--";
 Efunkpar.    Exp12 ::= Exp12 "(" [Exp] ")";
 Earrayget.   Exp12 ::= Exp12 "[" Exp9 "]" ;
+Earrgetcom.  Exp12 ::= Exp12 "[" [Exp9] "]" ;
 Evar.        Exp13 ::= Ident;
 Econst.      Exp13 ::= Constant;
 
@@ -89,6 +90,7 @@ Etrue.      Constant ::= "True";
 Efalse.     Constant ::= "False";
 
 separator Exp "," ;
+separator Exp9 "," ;
 coercions Exp 13 ;
 
 Plus.        Unary_exp_operator ::= "+" ;

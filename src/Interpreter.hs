@@ -149,5 +149,5 @@ evalBreak = return (Tint, Num 0)
 evalPrintStmt :: Print_stmt -> PartialResult TypedVal
 evalPrintStmt (Sprint exp) = do
   (varType, val) <- evalExpr exp
-  lift $ lift $ lift $ putStrLn $ show val
+  liftIO $ putStrLn $ show val
   return (varType, val)
