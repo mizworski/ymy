@@ -112,6 +112,7 @@ instance Print [Stmt] where
 instance Print Dec where
   prt i e = case e of
     Declarator id type_ -> prPrec i 0 (concatD [prt 0 id, doc (showString "::"), prt 2 type_])
+  prtList _ [] = concatD []
   prtList _ [x] = concatD [prt 0 x]
   prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
 
@@ -132,7 +133,7 @@ instance Print Type where
 instance Print Decl_stmt where
   prt i e = case e of
     DeclVar dec -> prPrec i 0 (concatD [prt 0 dec, doc (showString ";")])
-    DeclFn id ids stmt -> prPrec i 0 (concatD [doc (showString "def"), prt 0 id, doc (showString "("), prt 0 ids, doc (showString ")"), doc (showString ":"), prt 0 stmt])
+    DeclFn dec decs stmt -> prPrec i 0 (concatD [doc (showString "def"), prt 0 dec, doc (showString "("), prt 0 decs, doc (showString ")"), doc (showString ":"), prt 0 stmt])
 
 instance Print [Ident] where
   prt = prtList

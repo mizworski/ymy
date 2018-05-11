@@ -35,7 +35,7 @@ data Type
     | Tfunarg Type Type
   deriving (Eq, Ord, Show, Read)
 
-data Decl_stmt = DeclVar Dec | DeclFn Ident [Ident] Stmt
+data Decl_stmt = DeclVar Dec | DeclFn Dec [Dec] Stmt
   deriving (Eq, Ord, Show, Read)
 
 data Compound_stmt = Scomp [Stmt]

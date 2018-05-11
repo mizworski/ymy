@@ -70,7 +70,41 @@ runStmts (stmt:stmts) = do
   runStmts stmts
 
 runDecl :: Decl_stmt -> PartialResult Env
-runDecl (DeclVar (Declarator identifier varType)) = declare identifier varType
+runDecl (DeclVar (Declarator name varType)) = declare name varType
+runDecl (DeclFn (Declarator name fnType) args stmt) = defineFun name fnType args stmt
+
+-- jakby zamienic Val na Bexpr to mamy call by name vs call by value
+parseBindArguments :: [Dec] -> [TypedVal] -> PartialResult (Env, [Ident])
+parseBindArguments [] [] = do
+  env <- ask
+  return (env, [])
+
+parseBindArguments ((Declarator ident paramType):vars) (val:vals) = do
+    env <- ask
+    env1 <- local (const env) $ declare ident paramType
+    assign (Evar ident) val
+    (env2, acc) <- local (const env1) $ parseBindArguments vars vals
+    return (env2, ident : acc)
+
+defineFun :: Ident -> Type -> [Dec] -> Stmt -> PartialResult Env
+defineFun fnName fnType args stmt = do
+  env <- ask
+  env1 <- local (const env) $ declare fnName fnType
+  let fname params = do
+      (env2, params) <- local (const env1) $ parseBindArguments args params
+      env3 <- local (const env2) $ runStmt stmt
+
+      -- todo return values
+      return (Tunit, Undefined)
+
+  loc <- local (const env1) $ getloc (Evar fnName)
+  store <- get
+
+  case Data.Map.lookup loc store of
+    Nothing -> throwError "Failed to declare Function."
+    otherwise -> local (const env1) $ modify (Data.Map.insert loc (fnType, Fun fname))
+
+  return env1
 
 evalStmt :: Stmt -> PartialResult TypedVal
 evalStmt (ExprS stmt) = evalExprStmt stmt

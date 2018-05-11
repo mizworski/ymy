@@ -17,6 +17,8 @@ import Control.Monad.Except
 import System.IO
 import System.Environment
 
+
+
 declare :: Ident -> Type -> PartialResult Env
 declare varName varType = do
   env <- ask
@@ -47,7 +49,7 @@ getloc :: Exp -> PartialResult Loc
 getloc (Evar ident) = do
   env <- ask
   case lookup ident env of
-    Nothing -> throwError "Undeclared var."
+    Nothing -> throwError $ "Undeclared var: " ++ show ident
     Just loc -> return loc
 
 getloc (Earrayget lvalue ind) = getloc lvalue

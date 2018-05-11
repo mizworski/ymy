@@ -40,7 +40,7 @@ transType x = case x of
 transDecl_stmt :: Decl_stmt -> Result
 transDecl_stmt x = case x of
   DeclVar dec -> failure x
-  DeclFn ident idents stmt -> failure x
+  DeclFn dec decs stmt -> failure x
 transCompound_stmt :: Compound_stmt -> Result
 transCompound_stmt x = case x of
   Scomp stmts -> failure x

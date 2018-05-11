@@ -41,9 +41,7 @@ data Flow_stmt = Scontinue | Sbreak | Sreturn Exp
 
 data Exp
     = Elambda [Dec] Exp
-    | Earray [Exp]
     | Efunkpar Exp [Exp]
-    | Earrayget Exp Exp
   deriving (Eq, Ord, Show, Read)
 
 

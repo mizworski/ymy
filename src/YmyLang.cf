@@ -14,7 +14,7 @@ separator Stmt "" ;
 
 Declarator. 	Dec  ::= Ident "::" Type2 ;
 
-separator nonempty Dec "," ;
+separator Dec "," ;
 
 Tunit.		Type  ::= "Unit";
 Tarray.		Type2 ::= "[" Type2 "]";
@@ -33,7 +33,7 @@ Tfunarg.	Type2 ::= Type "->" Type;
 coercions Type 2 ;
 
 DeclVar.    Decl_stmt ::= Dec ";" ;
-DeclFn.     Decl_stmt ::= "def" Ident "(" [Ident] ")" ":" Stmt ;
+DeclFn.     Decl_stmt ::= "def" Dec "(" [Dec] ")" ":" Stmt ;
 
 separator Ident "," ;
 

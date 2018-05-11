@@ -114,7 +114,6 @@ evalExpr (Earray (e:es)) = do
     True -> return (Tarray headType, Arr (headVal:tailVal))
     False -> throwError "Array types mismatch."
 
-
 evalExpr (Earrgetcom arrExp indices) = do
   (Tarray elType, Arr arr) <- evalExpr arrExp
   res <- hArrComma arr indices
@@ -126,6 +125,12 @@ evalExpr (Earrayget arrExp indExp) = do
   case compare (toInteger $ length arr) ind of
     GT -> return (elType, arr !! (fromIntegral ind))
     otherwise -> throwError "Index out of range."
+
+evalExpr (Efunkpar fnExpr paramsExpr) = do
+  (Tfunarg _ retType, Fun fn) <- evalExpr fnExpr
+  params <-mapM evalExpr paramsExpr
+  retVal <- fn params
+  return retVal
 
 evalExpr (Epostinc e) = do
   (Tint, Num v) <- evalExpr e

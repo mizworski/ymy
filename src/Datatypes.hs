@@ -14,23 +14,25 @@ type Env = [(Ident, Loc)]
 
 type Result = ExceptT String IO
 
-type Function = (Env, [Ident], Stmt)
+--type Function = (Env, [Ident], Stmt)
+type Funct = [TypedVal] -> PartialResult TypedVal
+--newtype IFun = IFun ([TypedVal] -> PartialResult TypedVal)
 
 data Val
   = Num Integer
   | Boolean Bool
   | Str String
-  | Fun Function
+  | Fun Funct
   | Arr [Val]
   | Undefined
 
 instance Show Val where
+  show Undefined = "Undefined"
+  show (Fun fn) = "Function"
   show (Num n) = show n
   show (Boolean b) = show b
   show (Str str) = str
-  show (Fun fn) = show fn
   show (Arr xs) = show xs
-  show Undefined = "Undefined"
 
 type Store = Data.Map.Map Loc TypedVal
 
