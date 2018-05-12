@@ -47,20 +47,20 @@ runProg env store (Progr []) = return (env, store)
 
 
 runProg env store (Progr (stmt:stmts)) = do
-  (env', store') <- runReaderT (runStateT (runStmt stmt) store) env
+  ((env', _), store') <- runReaderT (runStateT (runStmt stmt) store) env
   runProg env' store' (Progr stmts)
 
 
-runStmt :: Stmt -> PartialResult Env
+runStmt :: Stmt -> PartialResult ((Env, FTypedVal))
 runStmt (DeclS decl) = do
   env' <- runDecl decl
-  return env'
+  return (env', Right (Tunit, Undefined))
 runStmt stmt = do
-  env <- ask
-  evalStmt stmt
-  return env
+  env' <- ask
+  res <- evalStmt stmt
+  return (env', res)
 
-runStmts :: [Stmt] -> PartialResult Env
+runStmts :: [Stmt] -> PartialResult ((Env, FTypedVal))
 runstmts [] = do
   env <- ask
   return env
@@ -91,10 +91,12 @@ defineFun fnName fnType args stmt = do
   env1 <- local (const env) $ declare fnName fnType
   let fname params = do
       (env2, params) <- local (const env1) $ parseBindArguments args params
-      env3 <- local (const env2) $ runStmt stmt
-
+      (env3, res) <- local (const env2) $ runStmt stmt
+      case res of
+        (Left (FReturn res)) -> return res
+        (Right res) -> return res
+        otherwise -> throwError "Invalid flow statement used."
       -- todo return values
-      return (Tunit, Undefined)
 
   loc <- local (const env1) $ getloc (Evar fnName)
   store <- get

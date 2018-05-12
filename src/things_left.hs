@@ -12,9 +12,7 @@ data Program = Progr [Stmt]
   deriving (Eq, Ord, Show, Read)
 
 data Stmt
-    = DeclS Decl_stmt
     | ExprS Expression_stmt
-    | FlowS Flow_stmt
   deriving (Eq, Ord, Show, Read)
 
 data Dec = Declarator Ident Type
@@ -30,18 +28,12 @@ data Type
     | Tfunarg Type Type
   deriving (Eq, Ord, Show, Read)
 
-data Decl_stmt = DeclFn Ident [Ident] Stmt
-  deriving (Eq, Ord, Show, Read)
-
 data Expression_stmt = SexprEmpty | Sexpr Exp
   deriving (Eq, Ord, Show, Read)
 
-data Flow_stmt = Scontinue | Sbreak | Sreturn Exp
-  deriving (Eq, Ord, Show, Read)
 
 data Exp
     = Elambda [Dec] Exp
-    | Efunkpar Exp [Exp]
   deriving (Eq, Ord, Show, Read)
 
 
