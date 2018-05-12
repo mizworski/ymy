@@ -9,14 +9,25 @@ import Control.Monad.Except
 
 type Loc = Int
 type TypedVal = (Type, Val)
+type FTypedVal = Either Flow TypedVal
 
 type Env = [(Ident, Loc)]
 
+--type Result = ExceptT String (ExceptT Flow IO)
 type Result = ExceptT String IO
 
 --type Function = (Env, [Ident], Stmt)
 type Funct = [TypedVal] -> PartialResult TypedVal
 --newtype IFun = IFun ([TypedVal] -> PartialResult TypedVal)
+data Flow
+  = FBreak
+  | FContinue
+  | FReturn TypedVal
+
+instance Show Flow where
+  show FBreak = "Break"
+  show FContinue = "Continue"
+  show (FReturn val) = show val
 
 data Val
   = Num Integer
@@ -42,5 +53,4 @@ showStore :: Store -> String
 showStore store = do
   Data.Map.foldr (\tval acc -> ((show tval) ++ "\n" ++ acc)) "" store
 
---type PartialResult a = StateT Store (ReaderT Env Result) a
 type PartialResult a = StateT Store (ReaderT Env Result) a

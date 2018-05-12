@@ -30,21 +30,20 @@ interpret env store program = do
       hPutStrLn stderr $ "Type error: " ++ e
       return (env, store)
     otherwise -> do
-      putStrLn $ show program
+--      putStrLn $ show program
       res <- runExceptT $ runProg env store program
       case res of
         (Left e) -> do
-          hPutStrLn stderr $ "Runtime error: " ++ e
-          return (env, store)
+           hPutStrLn stderr $ "Runtime error: " ++ e
+           return (env, store)
         (Right (env', store')) -> do
-          putStrLn $ show env'
-          putStrLn $ showStore store'
-          return (env', store')
+    --          putStrLn $ show env'
+    --          putStrLn $ showStore store'
+           return (env', store')
 
 
 runProg :: Env -> Store -> Program -> Result ((Env, Store))
-runProg env store (Progr []) = do
-  return (env, store)
+runProg env store (Progr []) = return (env, store)
 
 
 runProg env store (Progr (stmt:stmts)) = do
@@ -82,7 +81,7 @@ parseBindArguments [] [] = do
 parseBindArguments ((Declarator ident paramType):vars) (val:vals) = do
     env <- ask
     env1 <- local (const env) $ declare ident paramType
-    assign (Evar ident) val
+    local (const env1) $ assign (Evar ident) val
     (env2, acc) <- local (const env1) $ parseBindArguments vars vals
     return (env2, ident : acc)
 
@@ -106,82 +105,94 @@ defineFun fnName fnType args stmt = do
 
   return env1
 
-evalStmt :: Stmt -> PartialResult TypedVal
+evalStmt :: Stmt -> PartialResult FTypedVal
 evalStmt (ExprS stmt) = evalExprStmt stmt
+
 evalStmt (CompS stmt) = evalCompoundStmt stmt
 evalStmt (SelS stmt) = evalSelStmt stmt
 evalStmt (IterS stmt) = evalIterStmt stmt
 evalStmt (FlowS stmt) = evalFlowStmt stmt
 evalStmt (PrintS stmt) = evalPrintStmt stmt
 
-evalCompoundStmt :: Compound_stmt -> PartialResult TypedVal
-evalCompoundStmt (Scomp []) = return (Tunit, Undefined)
+evalCompoundStmt :: Compound_stmt -> PartialResult FTypedVal
+evalCompoundStmt (Scomp []) = return $ Right (Tunit, Undefined)
 evalCompoundStmt (Scomp ((DeclS decl):stmts)) = do
   env' <- runDecl decl
-  local (const env') (evalCompoundStmt (Scomp stmts))
-  return (Tunit, Undefined)
+  res <- local (const env') (evalCompoundStmt (Scomp stmts))
+  return res
 evalCompoundStmt (Scomp (stmt:stmts)) = do
-  evalStmt stmt
-  evalCompoundStmt (Scomp stmts)
-  return (Tunit, Undefined)
+  res <- evalStmt stmt
+  case res of
+    (Left fl) -> return $ Left fl
+    otherwise -> do
+      res <- evalCompoundStmt (Scomp stmts)
+      return res
 
-evalExprStmt :: Expression_stmt -> PartialResult TypedVal
-evalExprStmt SexprEmpty = return (Tunit, Undefined)
-evalExprStmt (Sexpr expr) = evalExpr expr
+evalExprStmt :: Expression_stmt -> PartialResult FTypedVal
+evalExprStmt SexprEmpty = return $ Right (Tunit, Undefined)
+evalExprStmt (Sexpr expr) = do
+  res <- evalExpr expr
+  return $ Right res
 
-evalIterStmt :: Iter_stmt -> PartialResult TypedVal
+evalIterStmt :: Iter_stmt -> PartialResult FTypedVal
 evalIterStmt (Swhile condExp stmt) = evalWhile condExp stmt
 evalIterStmt (Sfor initExpStmt condExpStmt incrExp evalStmt) = evalFor initExpStmt condExpStmt incrExp evalStmt
 evalIterStmt (Sfornoinc initExpStmt condExpStmt evalStmt) = evalFor initExpStmt condExpStmt (Econst $ Einteger 0) evalStmt
 
-evalWhile :: Exp -> Stmt -> PartialResult TypedVal
-evalWhile condExp stmt = do
+evalWhile :: Exp -> Stmt -> PartialResult FTypedVal
+evalWhile condExp stmt = evalLoop condExp (Econst $ Einteger 0) stmt
+
+evalLoop :: Exp -> Exp -> Stmt -> PartialResult FTypedVal
+evalLoop condExp postLoopExp stmt = do
   (varType, val) <- evalExpr condExp
   case val of
     Boolean True -> do
       res <- evalStmt stmt
-      evalWhile condExp stmt
-      return (Tunit, Undefined)
+      case res of
+        (Left FBreak) -> return $ Right (Tunit, Undefined)
+        (Left (FReturn res)) -> return $ Left (FReturn res)
+        otherwise -> do
+          evalExpr postLoopExp
+          evalLoop condExp postLoopExp stmt
+
+      return $ Right (Tunit, Undefined)
     Boolean False -> do
-      return (Tunit, Undefined)
+      return $ Right (Tunit, Undefined)
     otherwise -> throwError "Condition must be bexpr."
 
-evalFor :: Expression_stmt -> Expression_stmt -> Exp -> Stmt -> PartialResult TypedVal
+evalFor :: Expression_stmt -> Expression_stmt -> Exp -> Stmt -> PartialResult FTypedVal
 evalFor initExpStmt (Sexpr condExp) incrExp evalStmt = do
   res <- evalExprStmt initExpStmt
-  evalWhile condExp $ CompS $ Scomp $ evalStmt : (ExprS $ Sexpr incrExp) : []
+  evalLoop condExp incrExp evalStmt
+evalFor initExpStmt empty incrExp evalStmt = do
+  evalLoop (Econst Etrue) incrExp evalStmt
 
 
-evalSelStmt :: Selection_stmt -> PartialResult TypedVal
+evalSelStmt :: Selection_stmt -> PartialResult FTypedVal
 evalSelStmt (Sif condExp stmt) = evalIfElse condExp stmt $ ExprS $ SexprEmpty
 evalSelStmt (SifElse condExp stmtTrue stmtFalse) = evalIfElse condExp stmtTrue stmtFalse
 
-evalIfElse :: Exp -> Stmt -> Stmt -> PartialResult TypedVal
+evalIfElse :: Exp -> Stmt -> Stmt -> PartialResult FTypedVal
 evalIfElse condExp stmtTrue stmtFalse = do
   (varType, val) <- evalExpr condExp
   case val of
     Boolean True -> do
       res <- evalStmt stmtTrue
-      return (Tunit, Undefined)
+      return res
     Boolean False -> do
       res <- evalStmt stmtFalse
-      return (Tunit, Undefined)
+      return res
     otherwise -> throwError "Condition must be bexpr."
 
-evalFlowStmt :: Flow_stmt -> PartialResult TypedVal
-evalFlowStmt Scontinue = evalContinue
-evalFlowStmt Sbreak = evalBreak
-evalFlowStmt stmt = return (Tint, Num 0)
+evalFlowStmt :: Flow_stmt -> PartialResult FTypedVal
+evalFlowStmt Scontinue = return $ Left FContinue
+evalFlowStmt Sbreak = return $ Left FBreak
+evalFlowStmt (Sreturn expr) = do
+  res <- evalExpr expr
+  return $ Left (FReturn res)
 
-evalContinue :: PartialResult TypedVal
-evalContinue = return (Tint, Num 0)
-
-evalBreak:: PartialResult TypedVal
-evalBreak = return (Tint, Num 0)
-
-
-evalPrintStmt :: Print_stmt -> PartialResult TypedVal
+evalPrintStmt :: Print_stmt -> PartialResult FTypedVal
 evalPrintStmt (Sprint exp) = do
   (varType, val) <- evalExpr exp
   liftIO $ putStrLn $ show val
-  return (varType, val)
+  return $ Right $ (varType, val)

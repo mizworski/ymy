@@ -131,7 +131,7 @@ Na 14 punktów
 (+) 1 (dwa typy)
 (+) 2 (arytmetyka, porównania)
 (+) 3 (while, if)
-+   4 (procedury lub funkcje, rekurencja)
+(+) 4 (procedury lub funkcje, rekurencja)
 (+) 5 (print)
     6 a) (przez zmienną i wartość)
 (+)   b) (pętla for)
@@ -154,6 +154,6 @@ Na 17 punktów
 +      h) (funkcje anonimowe)
 
 Na 24 punkty
-+   12 (funkcje zagnieżdżone ze statycznym wiązaniem)
+(+) 12 (funkcje zagnieżdżone ze statycznym wiązaniem)
 +   13 (jeszcze coś lub dwa)
 ```

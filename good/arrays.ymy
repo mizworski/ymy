@@ -2,21 +2,23 @@ a :: [Int];
 a = [0] * 10;
 
 i :: Int;
-for i; i < 10; i++: {
+for i=0; i < 10; i++: {
     print a[i];
 }
 
 b :: [String];
 b = ["a", "b"] * 5;
-for i; i < 10; i++: {
+for i=0; i < 10; i++: {
     print b[i];
 }
 
 c :: [[Int]];
 c = [[1,2], [3,4]];
 
-for i; i < 2; i++: {
-    for j; j < 2; j++: {
+j :: Int;
+
+for i=0; i < 2; i++: {
+    for j=0; j < 2; j++: {
         print c[i][j];
     }
 }

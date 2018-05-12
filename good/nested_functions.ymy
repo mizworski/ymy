@@ -10,7 +10,6 @@ def f(x): {
     }
     x = h(x);
     def h(x): if x == 0: return 0; else: return x * h(x-1);
-    // factorial - note, it uses the right h (the new one, not the old one)
     
     g(5);
 }

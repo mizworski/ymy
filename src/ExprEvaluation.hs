@@ -37,7 +37,6 @@ evalExpr (Econdition be e1 e2) = do
     True -> do
       res <- evalExpr e1
       return res
-      -- dlaczego nie moge zrobic return evalExpr e1?
     False -> do
       res <- evalExpr e2
       return res
@@ -54,7 +53,7 @@ evalExpr (Eplus e1 e2) = do
           -- moge to zrobic jakos inaczej?
           Tint -> return $ (Tint, Num $ (+) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
           (Tarray _) -> return $ (t1, Arr $ ((\(Arr xs) -> xs) v1) ++ (((\(Arr xs) -> xs) v2)))
-      False -> throwError "Invalid types1."
+      False -> lift $ throwError "Invalid types."
 
 -- to tez wyglada okropnie
 evalExpr (Etimes e1 e2) = do
@@ -63,28 +62,28 @@ evalExpr (Etimes e1 e2) = do
     case t1 == t2 of
       True -> do
         case t1 of
-          Tint -> return $ (Tint, Num $ (+) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
-          otherwise -> throwError "Invalid types2."
+          Tint -> return $ (Tint, Num $ (*) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
+          otherwise -> lift $ throwError "Invalid types2."
       False -> do
         case t1 of
           (Tarray _) -> return $ (t1, Arr $ duplicateArr ((\(Arr xs) -> xs) v1) (((\(Num x) -> x) v2)) [])
           otherwise -> do
             case t2 of
               (Tarray _) -> return $ (t2, Arr $ duplicateArr ((\(Arr xs) -> xs) v2) (((\(Num x) -> x) v1)) [])
-              otherwise -> throwError "Invalid types3."
+              otherwise -> lift $ throwError "Invalid types3."
 
 evalExpr (Eminus e1 e2) = evalBinOpInt e1 e2 (-)
 evalExpr (Ediv e1 e2) = do
   (Tint, Num v1) <- evalExpr e1
   (Tint, Num v2) <- evalExpr e2
   case v2 of
-    0 -> throwError "Division by zero."
+    0 -> lift $ throwError "Division by zero."
     otherwise -> return $ (Tint, Num $ v1 `div` v2)
 evalExpr (Emod e1 e2) = do
   (Tint, Num v1) <- evalExpr e1
   (Tint, Num v2) <- evalExpr e2
   case v2 of
-    0 -> throwError "Modulo by zero."
+    0 -> lift $ throwError "Modulo by zero."
     otherwise -> return $ (Tint, Num $ v1 `mod` v2)
 
 evalExpr (Elor be1 be2) = evalBinOpBool be1 be2 (||)
@@ -112,7 +111,7 @@ evalExpr (Earray (e:es)) = do
   (Tarray tailType, Arr tailVal) <- evalExpr $ Earray es
   case headType == tailType || tailType == Tany of
     True -> return (Tarray headType, Arr (headVal:tailVal))
-    False -> throwError "Array types mismatch."
+    False -> lift $ throwError "Array types mismatch."
 
 evalExpr (Earrgetcom arrExp indices) = do
   (Tarray elType, Arr arr) <- evalExpr arrExp
@@ -124,7 +123,7 @@ evalExpr (Earrayget arrExp indExp) = do
   (Tarray elType, Arr arr) <- evalExpr arrExp
   case compare (toInteger $ length arr) ind of
     GT -> return (elType, arr !! (fromIntegral ind))
-    otherwise -> throwError "Index out of range."
+    otherwise -> lift $ throwError "Index out of range."
 
 evalExpr (Efunkpar fnExpr paramsExpr) = do
   (Tfunarg _ retType, Fun fn) <- evalExpr fnExpr
@@ -228,10 +227,10 @@ hArrComma arr (idExpr:[]) = do
   (Tint, Num id) <- evalExpr idExpr
   case compare (toInteger $ length arr) id of
     GT -> return $ arr !! (fromIntegral id)
-    otherwise -> throwError "Index out of range."
+    otherwise -> lift $ throwError "Index out of range."
 
 hArrComma arr (idExpr:idExprs) = do
   (Tint, Num id) <- evalExpr idExpr
   case compare (toInteger $ length arr) id of
     GT -> hArrComma ((\(Arr arr) -> arr) (arr !! (fromIntegral id))) idExprs
-    otherwise -> throwError "Index out of range."
+    otherwise -> lift $ throwError "Index out of range."

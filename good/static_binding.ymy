@@ -1,19 +1,18 @@
 x :: Int; // outer_x
-foo :: Unit -> Int;
-def f(): {
-    x = 1; // set outer_x to 1
-    return x;
-};
+
+def f :: Unit -> Int (): {
+    x = 1;
+}
 x = 0;
-foo2 :: Unit -> Unit;
-def g(): {
-    x :: Int; // inner_x
+def g :: Unit -> Unit (): {
+    x :: Int;
     z :: Int;
     x = 0;
-    f(); // outer_x = 1, inner_x = 0
-    print x; // 0
-    print z; // 1
-};
+    f();
+    z = 1;
+    print x;
+    print z;
+}
 
 g();
 print x; // 1
