@@ -122,7 +122,7 @@ evalExpr (Earray (e:es)) = do
 evalExpr (Elambda args expr) = do
   env <- ask
   let fname params = do
-        (env1, params) <- local (const env) $ parseBindArguments args params
+        (env1, params) <- local (const env) $ parseArgs args params
         (env2, res) <- local (const env1) $ evalExpr expr
         -- todo types
         return (Tfunarg Tunit Tunit, res)
@@ -268,14 +268,14 @@ hArrComma arr (idExpr:idExprs) = do
         otherwise -> throwError "Array rank too small."
     otherwise -> lift $ throwError "Index out of range."
 
-parseBindArguments :: [Dec] -> [TypedVal] -> PartialResult (Env, [Ident])
-parseBindArguments [] [] = do
+parseArgs :: [Dec] -> [TypedVal] -> PartialResult (Env, [Ident])
+parseArgs [] [] = do
   env <- ask
   return (env, [])
 
-parseBindArguments ((Declarator ident paramType):vars) (val:vals) = do
+parseArgs ((Declarator ident paramType):vars) (val:vals) = do
     env <- ask
     env1 <- local (const env) $ declare ident paramType
     local (const env1) $ assign (Evar ident) val
-    (env2, acc) <- local (const env1) $ parseBindArguments vars vals
+    (env2, acc) <- local (const env1) $ parseArgs vars vals
     return (env2, ident : acc)

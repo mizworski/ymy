@@ -2,16 +2,18 @@
 
 # Opis języka Ymy
 
-Mój język jest zbliżony składnią do Pythona. Szkic gramatyki zapożyczyłem z: 
-https://github.com/BNFC/bnfc/blob/master/examples/C/C.cf
-Będę walczył o 24 punkty.
+Język imperatywny ze składnią zbliżoną do Pythona.
 
 # Typy 
 
 Int, Bool, String.
+
 Unit - brak przymowanych argumentów / zwracanego wyniku.
+
 [ Type ] - typy tablicowe
+
 Type -> Type - dowolna funkcja
+
 (Type -> Type) - funkcja jako argument
 
 # Operacje arytmetyczne
@@ -37,9 +39,13 @@ Operatory:
 # Podstawowe instrukcje
 
 pętle for, while,
+
 if, if else,
+
 print (jako słowo kluczowe),
+
 break, continue,
+
 return (tylko z expr)
 
 Ponadto deklaracje zmiennych są traktowane jako instrukcje, mogą więc być robione na zmianę z pozostałymi instrukcjami.
@@ -96,14 +102,14 @@ Zmienne deklarujemy podobnie jak w Haskellu. Nie ma możliwości podania rozmiar
 ```
 a :: [Int]
 a = [0] * 10
-len(a) == 10 // True
+// len(a) == 10 , nie mamy wbudowanej funkcji len
 
 // Dodatkowo
 
 b :: [[Int]]
 b = [[1,2], [3,4]]
 b[0][1] // dobrze
-// b[0, 1] - blad 
+b[0, 1] // tez dobrze
 
 ```
 

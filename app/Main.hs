@@ -43,7 +43,19 @@ readLines parsedInput = do
     otherwise -> readLines stmt
 
 
+runFromFile :: String -> Env -> Store -> IO()
+runFromFile filename env store = do
+  stmt <- readFile filename
+  case (pProgram $ myLexer stmt) of
+    (Ok p) -> do
+      (env', store') <- interpret env store p
+      return()
+    (Bad p) -> do
+      putStrLn $ "Syntax error"
+
 main :: IO ()
 main = do
   args <- getArgs
-  interpreter [] Data.Map.empty
+  case args of
+    [] -> interpreter [] Data.Map.empty
+    filenames -> runFromFile (filenames !! 0) [] Data.Map.empty

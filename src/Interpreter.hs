@@ -76,7 +76,7 @@ defineFun fnName fnType args stmt = do
   env <- ask
   env1 <- local (const env) $ declare fnName fnType
   let fname params = do
-      (env2, params) <- local (const env1) $ parseBindArguments args params
+      (env2, params) <- local (const env1) $ parseArgs args params
       (env3, res) <- local (const env2) $ runStmt stmt
       case res of
         (Left (FReturn res)) -> return res
