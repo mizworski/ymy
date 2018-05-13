@@ -1,17 +1,12 @@
-f :: Int -> Int;
-g :: Int -> Int;
-def f(x): {
-    h :: Int -> Unit;
-    x = 5;
-    def g(x): {
-    	x = 1;
-    	def h(x): x = x*3; 
+def f :: Int -> Int (x :: Int): {
+    x = 2;
+    def g :: Int -> Int (x :: Int) : {
+    	x = 3;
+    	def h :: Int -> Int (x :: Int) : return x = x*5;
 	return h(x);
     }
-    x = h(x);
-    def h(x): if x == 0: return 0; else: return x * h(x-1);
-    
-    g(5);
+    return g(5);
 }
 
+print "Expected res = 15";
 print f(1);

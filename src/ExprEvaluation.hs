@@ -31,6 +31,7 @@ evalExpr (Eassign e1 op e2) = do
   -- todo check types
   return newVal
 
+
 evalExpr (Econdition be e1 e2) = do
   (Tbool, Boolean b) <- evalExpr be
   case b of
@@ -49,13 +50,12 @@ evalExpr (Eplus e1 e2) = do
     case t1 == t2 of
       True -> do
         case t1 of
-          -- to odpakowywanie jest jakims koszmarem, ale musialem tak zrobic aby uniknac dwukrotnej ewaliacji expra
-          -- moge to zrobic jakos inaczej?
           Tint -> return $ (Tint, Num $ (+) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
           (Tarray _) -> return $ (t1, Arr $ ((\(Arr xs) -> xs) v1) ++ (((\(Arr xs) -> xs) v2)))
-      False -> lift $ throwError "Invalid types."
+          Tstring -> return $ (t1, Str $ ((\(Str xs) -> xs) v1) ++ (((\(Str xs) -> xs) v2)))
+          otherwise -> throwError "Operation plus not implemented on these datatypes."
+      False -> lift $ throwError "Both elements has to be of same type."
 
--- to tez wyglada okropnie
 evalExpr (Etimes e1 e2) = do
     (t1, v1) <- evalExpr e1
     (t2, v2) <- evalExpr e2
@@ -63,14 +63,20 @@ evalExpr (Etimes e1 e2) = do
       True -> do
         case t1 of
           Tint -> return $ (Tint, Num $ (*) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
-          otherwise -> lift $ throwError "Invalid types2."
+          otherwise -> lift $ throwError "Cannot multiply these types."
       False -> do
         case t1 of
-          (Tarray _) -> return $ (t1, Arr $ duplicateArr ((\(Arr xs) -> xs) v1) (((\(Num x) -> x) v2)) [])
+          (Tarray _) -> do
+            case t2 of
+              Tint -> return $ (t1, Arr $ duplicateArr ((\(Arr xs) -> xs) v1) (((\(Num x) -> x) v2)) [])
+              otherwise -> throwError "Arrays can be multiplied only by Int."
           otherwise -> do
             case t2 of
-              (Tarray _) -> return $ (t2, Arr $ duplicateArr ((\(Arr xs) -> xs) v2) (((\(Num x) -> x) v1)) [])
-              otherwise -> lift $ throwError "Invalid types3."
+              (Tarray _) -> do
+                case t1 of
+                  Tint -> return $ (t2, Arr $ duplicateArr ((\(Arr xs) -> xs) v2) (((\(Num x) -> x) v1)) [])
+                  otherwise -> throwError "Arrays can be multiplied only by Int."
+              otherwise -> lift $ throwError "Cannot multiply these types."
 
 evalExpr (Eminus e1 e2) = evalBinOpInt e1 e2 (-)
 evalExpr (Ediv e1 e2) = do
@@ -113,6 +119,16 @@ evalExpr (Earray (e:es)) = do
     True -> return (Tarray headType, Arr (headVal:tailVal))
     False -> lift $ throwError "Array types mismatch."
 
+evalExpr (Elambda args expr) = do
+  env <- ask
+  let fname params = do
+        (env1, params) <- local (const env) $ parseBindArguments args params
+        (env2, res) <- local (const env1) $ evalExpr expr
+        -- todo types
+        return (Tfunarg Tunit Tunit, res)
+  return (Tfunarg Tunit Tunit, Fun fname)
+
+
 evalExpr (Earrgetcom arrExp indices) = do
   (Tarray elType, Arr arr) <- evalExpr arrExp
   res <- hArrComma arr indices
@@ -127,7 +143,7 @@ evalExpr (Earrayget arrExp indExp) = do
 
 evalExpr (Efunkpar fnExpr paramsExpr) = do
   (Tfunarg _ retType, Fun fn) <- evalExpr fnExpr
-  params <-mapM evalExpr paramsExpr
+  params <- mapM evalExpr paramsExpr
   retVal <- fn params
   return retVal
 
@@ -201,9 +217,14 @@ assign (Earrayget lvalue ind) (valType, assignVal) = do
 
 modifyArray :: [Integer] -> [Val] -> Val -> PartialResult Val
 
+--modifyArray [] _ _ = throwError "Rank of array is too small for this operation."
+
 modifyArray (id:[]) oldArray newVal = do
-  (ls, _:rs) <- return $ splitAt (fromIntegral id) oldArray
-  return $ Arr $ ls ++ newVal : rs
+  case compare (fromIntegral id) (length oldArray) of
+    LT -> do
+          (ls, _:rs) <- return $ splitAt (fromIntegral id) oldArray
+          return $ Arr $ ls ++ newVal : rs
+    otherwise -> throwError "Index out of range."
 
 modifyArray (id:indices) oldArray newVal = do
   (ls, (Arr subArr):rs) <- return $ splitAt (fromIntegral id) oldArray
@@ -223,14 +244,38 @@ getIndices arrName = return []
 
 
 hArrComma :: [Val] -> [Exp] -> PartialResult Val
+--hArrComma _ [] = throwError "Rank of array is too small for this operation."
 hArrComma arr (idExpr:[]) = do
   (Tint, Num id) <- evalExpr idExpr
   case compare (toInteger $ length arr) id of
     GT -> return $ arr !! (fromIntegral id)
     otherwise -> lift $ throwError "Index out of range."
 
+--hArrComma arr (idExpr:idExprs) = do
+--  (Tint, Num id) <- evalExpr idExpr
+--  case compare (toInteger $ length arr) id of
+--    GT -> hArrComma ((\(Arr arr) -> arr) (arr !! (fromIntegral id))) idExprs
+--    otherwise -> lift $ throwError "Index out of range."
+
+
 hArrComma arr (idExpr:idExprs) = do
   (Tint, Num id) <- evalExpr idExpr
   case compare (toInteger $ length arr) id of
-    GT -> hArrComma ((\(Arr arr) -> arr) (arr !! (fromIntegral id))) idExprs
+    GT -> do
+      slice <- return $ arr !! (fromIntegral id)
+      case slice of
+        (Arr subArr) -> hArrComma subArr idExprs
+        otherwise -> throwError "Array rank too small."
     otherwise -> lift $ throwError "Index out of range."
+
+parseBindArguments :: [Dec] -> [TypedVal] -> PartialResult (Env, [Ident])
+parseBindArguments [] [] = do
+  env <- ask
+  return (env, [])
+
+parseBindArguments ((Declarator ident paramType):vars) (val:vals) = do
+    env <- ask
+    env1 <- local (const env) $ declare ident paramType
+    local (const env1) $ assign (Evar ident) val
+    (env2, acc) <- local (const env1) $ parseBindArguments vars vals
+    return (env2, ident : acc)

@@ -1,18 +1,25 @@
-x :: Int; // outer_x
+x :: Int;
 
 def f :: Unit -> Int (): {
     x = 1;
+    return x;
 }
-x = 0;
+
+x = 3;
 def g :: Unit -> Unit (): {
     x :: Int;
     z :: Int;
     x = 0;
-    f();
-    z = 1;
+    z = f();
+
+    print "Expected 0";
     print x;
+
+    print "Expected 1";
     print z;
 }
 
 g();
-print x; // 1
+
+print "Expected 1";
+print x;

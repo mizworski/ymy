@@ -120,40 +120,41 @@ z = 3;
 x = lambda x :: Int : x * x;
 y = lambda : z + 2; 
 ```
-Note:
-Czy mógłbym się obejść bez deklaracji typów? W końcu korzystam z nich tylko: a) podczas przypisywania do zmiennych (typy argumentow już są) lub
-b) podczas podawania jako argument do funkcji (też mam już typ) 
 
 # Tabelka
 
 ```
 Na 14 punktów
-(+) 1 (dwa typy)
-(+) 2 (arytmetyka, porównania)
-(+) 3 (while, if)
-(+) 4 (procedury lub funkcje, rekurencja)
-(+) 5 (print)
+(+) 1 (dwa typy) (assignment.ymy)
+(+) 2 (arytmetyka, porównania) (assignment.ymy)
+(+) 3 (while, if) (loops.ymy)
+(+) 4 (procedury lub funkcje, rekurencja) (fibo.ymy)
+(+) 5 (print) (wszedzie)
     6 a) (przez zmienną i wartość)
-(+)   b) (pętla for)
-(?)   c) (string i rzutowania)
-(+)   d) (wyrażenia z = ++ += itd)
+(+)   b) (pętla for) (loops.ymy, arrays.ymy)
+(?)   c) (string i rzutowania) (wszedzie, bez rzutowan)
+(+)   d) (wyrażenia z = ++ += itd) (assignment.ymy, arrays.ymy itd)
 
 Na 17 punktów
 + 7 (statyczne typowanie)
   Na 20 punktów
-(+/-)8 (przesłanianie i statyczne wiązanie)
-(+) 9 (obsługa błędów wykonania)
-+   10 (funkcje zwracające wartość)
+(+) 8 (przesłanianie i statyczne wiązanie) (static_binding.ymy, lambdas.ymy)
+(+) 9 (obsługa błędów wykonania) (assignment.ymy, arrays.ymy)
+(+) 10 (funkcje zwracające wartość) (lambdas.ymy)
     11 a) (rekordy)
-(+)    b) (tablice/listy)
+(+)    b) (tablice/listy) (arrays.ymy, lambdas.ymy)
        c) (słowniki)
        d) (krotki z przypisaniem)
-+      e) (break, continue)
-+      f) (funkcje jako parametry)
-?      g) (funkcje w wyniku, domknięcia)
-+      h) (funkcje anonimowe)
+(+)    e) (break, continue)
+(+)    f) (funkcje jako parametry) (lambdas.ymy)
+(?)    g) (funkcje w wyniku, domknięcia) (lambdas.ymy)
+(+)    h) (funkcje anonimowe) (lambdas.ymy)
 
 Na 24 punkty
-(+) 12 (funkcje zagnieżdżone ze statycznym wiązaniem)
-+   13 (jeszcze coś lub dwa)
+(+) 12 (funkcje zagnieżdżone ze statycznym wiązaniem) (nested_functions.ymy)
+(+) 13 (jeszcze coś lub dwa)
 ```
+
+# Uwagi do 1 terminu oddania.
+
+W języku zostały zaimplementowane wszystkie funkcjonalności. Brakuje jedynie statycznego typowania. 

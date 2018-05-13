@@ -168,19 +168,9 @@ instance Print Print_stmt where
   prt i e = case e of
     Sprint exp -> prPrec i 0 (concatD [doc (showString "print"), prt 0 exp, doc (showString ";")])
 
-instance Print Constant where
-  prt i e = case e of
-    Einteger n -> prPrec i 0 (concatD [prt 0 n])
-    Estring str -> prPrec i 0 (concatD [prt 0 str])
-    Etrue -> prPrec i 0 (concatD [doc (showString "True")])
-    Efalse -> prPrec i 0 (concatD [doc (showString "False")])
-
-instance Print [Exp] where
-  prt = prtList
-
 instance Print Exp where
   prt i e = case e of
-    Elambda decs exp -> prPrec i 1 (concatD [doc (showString "lambda"), prt 0 decs, doc (showString ":"), prt 0 exp])
+    Elambda decs exp -> prPrec i 0 (concatD [doc (showString "lambda"), prt 0 decs, doc (showString ":"), prt 0 exp])
     Eassign exp1 assignmentop exp2 -> prPrec i 2 (concatD [prt 12 exp1, prt 0 assignmentop, prt 0 exp2])
     Econdition exp1 exp2 exp3 -> prPrec i 3 (concatD [prt 4 exp1, doc (showString "?"), prt 0 exp2, doc (showString ":"), prt 3 exp3])
     Elor exp1 exp2 -> prPrec i 4 (concatD [prt 4 exp1, doc (showString "or"), prt 5 exp2])
@@ -212,6 +202,16 @@ instance Print Exp where
   prtList _ [] = concatD []
   prtList _ [x] = concatD [prt 0 x]
   prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
+
+instance Print Constant where
+  prt i e = case e of
+    Einteger n -> prPrec i 0 (concatD [prt 0 n])
+    Estring str -> prPrec i 0 (concatD [prt 0 str])
+    Etrue -> prPrec i 0 (concatD [doc (showString "True")])
+    Efalse -> prPrec i 0 (concatD [doc (showString "False")])
+
+instance Print [Exp] where
+  prt = prtList
 
 instance Print Unary_exp_operator where
   prt i e = case e of

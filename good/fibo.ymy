@@ -1,7 +1,7 @@
-fibo :: Int -> Int;
-def fibo (n): {
+def fibo :: Int -> Int (n :: Int): {
 	return n > 1 ? n * fibo (n - 1) : 1;
 }
 
+print "Fibo(5) = ";
 print fibo(5);
 

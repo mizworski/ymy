@@ -59,9 +59,6 @@ data Flow_stmt = Scontinue | Sbreak | Sreturn Exp
 data Print_stmt = Sprint Exp
   deriving (Eq, Ord, Show, Read)
 
-data Constant = Einteger Integer | Estring String | Etrue | Efalse
-  deriving (Eq, Ord, Show, Read)
-
 data Exp
     = Elambda [Dec] Exp
     | Eassign Exp Assignment_op Exp
@@ -89,6 +86,9 @@ data Exp
     | Earrgetcom Exp [Exp]
     | Evar Ident
     | Econst Constant
+  deriving (Eq, Ord, Show, Read)
+
+data Constant = Einteger Integer | Estring String | Etrue | Efalse
   deriving (Eq, Ord, Show, Read)
 
 data Unary_exp_operator = Plus | Negative

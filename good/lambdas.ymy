@@ -1,0 +1,29 @@
+x :: Int -> Int;
+x = lambda x :: Int : x + 2;
+
+print "Expected result: 5";
+print x(3);
+
+y :: (Int -> Int) -> Int -> Int;
+y = lambda f :: Int -> Int, x :: Int : f(x + 3);
+
+print "Expected result: 6";
+print y(x, 1);
+
+print "Expected result: 12";
+print y(lambda y :: Int : y * 2, 3);
+
+print "Expected result: [1,2,1,2,1,2]";
+print (lambda xs :: [Int], n :: Int : xs * n)([1,2], 3);
+
+multiplyBy :: Int -> (Int -> Int);
+multiplyBy = lambda k :: Int : lambda x :: Int : x * k;
+
+print "Expected result: 15";
+print multiplyBy(3)(5);
+
+multiplyByThree :: Int -> Int;
+multiplyByThree = multiplyBy(3);
+
+print "Expected result: 27";
+print multiplyByThree(9);

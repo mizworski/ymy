@@ -21,7 +21,6 @@ import Control.Monad.Cont
 import System.IO
 import System.Environment
 
--- nie musze przekazywac enva breakow, continue, returnow, bo kazda definicja funkcji, petla jest wczytywana na raz
 interpret :: Env -> Store -> Program -> IO((Env, Store))
 interpret env store program = do
   checkRes <- runExceptT $ typeCheck env store program
@@ -72,19 +71,6 @@ runDecl :: Decl_stmt -> PartialResult Env
 runDecl (DeclVar (Declarator name varType)) = declare name varType
 runDecl (DeclFn (Declarator name fnType) args stmt) = defineFun name fnType args stmt
 
--- jakby zamienic Val na Bexpr to mamy call by name vs call by value
-parseBindArguments :: [Dec] -> [TypedVal] -> PartialResult (Env, [Ident])
-parseBindArguments [] [] = do
-  env <- ask
-  return (env, [])
-
-parseBindArguments ((Declarator ident paramType):vars) (val:vals) = do
-    env <- ask
-    env1 <- local (const env) $ declare ident paramType
-    local (const env1) $ assign (Evar ident) val
-    (env2, acc) <- local (const env1) $ parseBindArguments vars vals
-    return (env2, ident : acc)
-
 defineFun :: Ident -> Type -> [Dec] -> Stmt -> PartialResult Env
 defineFun fnName fnType args stmt = do
   env <- ask
@@ -96,7 +82,6 @@ defineFun fnName fnType args stmt = do
         (Left (FReturn res)) -> return res
         (Right res) -> return res
         otherwise -> throwError "Invalid flow statement used."
-      -- todo return values
 
   loc <- local (const env1) $ getloc (Evar fnName)
   store <- get

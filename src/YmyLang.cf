@@ -57,7 +57,7 @@ Sreturn. 	Flow_stmt ::= "return" Exp ";" ;
 
 Sprint.	  Print_stmt ::= "print" Exp ";";
 
-Elambda.     Exp1  ::= "lambda" [Dec] ":" Exp;
+Elambda.     Exp  ::= "lambda" [Dec] ":" Exp;
 Eassign.     Exp2  ::= Exp12 Assignment_op Exp;
 Econdition.  Exp3  ::= Exp4 "?" Exp ":" Exp3;
 Elor.        Exp4  ::= Exp4 "or" Exp5;

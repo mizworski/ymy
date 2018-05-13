@@ -65,12 +65,6 @@ transFlow_stmt x = case x of
 transPrint_stmt :: Print_stmt -> Result
 transPrint_stmt x = case x of
   Sprint exp -> failure x
-transConstant :: Constant -> Result
-transConstant x = case x of
-  Einteger integer -> failure x
-  Estring string -> failure x
-  Etrue -> failure x
-  Efalse -> failure x
 transExp :: Exp -> Result
 transExp x = case x of
   Elambda decs exp -> failure x
@@ -99,6 +93,12 @@ transExp x = case x of
   Earrgetcom exp exps -> failure x
   Evar ident -> failure x
   Econst constant -> failure x
+transConstant :: Constant -> Result
+transConstant x = case x of
+  Einteger integer -> failure x
+  Estring string -> failure x
+  Etrue -> failure x
+  Efalse -> failure x
 transUnary_exp_operator :: Unary_exp_operator -> Result
 transUnary_exp_operator x = case x of
   Plus -> failure x

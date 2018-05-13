@@ -1,8 +1,47 @@
 x :: Int ;
-y :: Int -> Int;
+z :: [[Int]];
 
 x = 2;
+print x;
 
-z = [ [1, 2], [3, 4]];
-z[1];
-z[1][2];
+x += 3;
+print x;
+
+z = [[1, 2], [3, 4]];
+print z;
+
+z += [[5,6]];
+print z;
+
+z[0] += [3, 4];
+print z;
+
+print x * 3;
+
+t :: Bool;
+f :: Bool;
+t = True;
+f = False;
+
+print t and f;
+print t and t;
+print f or f;
+print f or t;
+
+print "Div by 0 err.";
+x = 2 / 0;
+
+print "2 > 0";
+print 2 > 0;
+
+print "-1 < -2 ? tak : nie";
+print -1 < -2 ? "tak" : "nie";
+
+s1 :: String;
+s2 :: String;
+
+s1 = "Ymy to ";
+s2 = "super kolega";
+
+print "String concatenation.";
+print s1 + s2;
