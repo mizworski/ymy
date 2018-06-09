@@ -29,15 +29,15 @@ interpret env store program = do
       hPutStrLn stderr $ "Type error: " ++ e
       return (env, store)
     otherwise -> do
---      putStrLn $ show program
+      putStrLn $ show program
       res <- runExceptT $ runProg env store program
       case res of
         (Left e) -> do
            hPutStrLn stderr $ "Runtime error: " ++ e
            return (env, store)
         (Right (env', store')) -> do
-    --          putStrLn $ show env'
-    --          putStrLn $ showStore store'
+           putStrLn $ show env'
+           putStrLn $ showStore store'
            return (env', store')
 
 
@@ -59,14 +59,6 @@ runStmt stmt = do
   res <- evalStmt stmt
   return (env', res)
 
-runStmts :: [Stmt] -> PartialResult ((Env, FTypedVal))
-runstmts [] = do
-  env <- ask
-  return env
-runStmts (stmt:stmts) = do
-  env <- runStmt stmt
-  runStmts stmts
-
 runDecl :: Decl_stmt -> PartialResult Env
 runDecl (DeclVar (Declarator name varType)) = declare name varType
 runDecl (DeclFn (Declarator name fnType) args stmt) = defineFun name fnType args stmt
@@ -76,12 +68,12 @@ defineFun fnName fnType args stmt = do
   env <- ask
   env1 <- local (const env) $ declare fnName fnType
   let fname params = do
-      (env2, params) <- local (const env1) $ parseArgs args params
-      (env3, res) <- local (const env2) $ runStmt stmt
+      (env2, _) <- local (const env1) $ parseArgs args params
+      (_, res) <- local (const env2) $ runStmt stmt
       case res of
         (Left (FReturn res)) -> return res
-        (Right res) -> return res
-        otherwise -> throwError "Invalid flow statement used."
+        (Left FReturnVoid) -> return (Tunit, Undefined) 
+        otherwise -> throwError "Function had no return."
 
   loc <- local (const env1) $ getloc (Evar fnName)
   store <- get
@@ -137,6 +129,7 @@ evalLoop condExp postLoopExp stmt = do
       res <- evalStmt stmt
       case res of
         (Left FBreak) -> return $ Right (Tunit, Undefined)
+        (Left FReturnVoid) -> return $ Left FReturnVoid
         (Left (FReturn res)) -> return $ Left (FReturn res)
         otherwise -> do
           evalExpr postLoopExp
@@ -174,6 +167,7 @@ evalIfElse condExp stmtTrue stmtFalse = do
 evalFlowStmt :: Flow_stmt -> PartialResult FTypedVal
 evalFlowStmt Scontinue = return $ Left FContinue
 evalFlowStmt Sbreak = return $ Left FBreak
+evalFlowStmt SreturnVoid = return $ Left FReturnVoid
 evalFlowStmt (Sreturn expr) = do
   res <- evalExpr expr
   return $ Left (FReturn res)

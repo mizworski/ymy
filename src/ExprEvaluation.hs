@@ -122,10 +122,10 @@ evalExpr (Earray (e:es)) = do
 evalExpr (Elambda args expr) = do
   env <- ask
   let fname params = do
-        (env1, params) <- local (const env) $ parseArgs args params
-        (env2, res) <- local (const env1) $ evalExpr expr
-        -- todo types
-        return (Tfunarg Tunit Tunit, res)
+        (env1, _) <- local (const env) $ parseArgs args params
+        res <- local (const env1) $ evalExpr expr
+        return res
+  -- todo types
   return (Tfunarg Tunit Tunit, Fun fname)
 
 
@@ -217,8 +217,6 @@ assign (Earrayget lvalue ind) (valType, assignVal) = do
 
 modifyArray :: [Integer] -> [Val] -> Val -> PartialResult Val
 
---modifyArray [] _ _ = throwError "Rank of array is too small for this operation."
-
 modifyArray (id:[]) oldArray newVal = do
   case compare (fromIntegral id) (length oldArray) of
     LT -> do
@@ -244,18 +242,11 @@ getIndices arrName = return []
 
 
 hArrComma :: [Val] -> [Exp] -> PartialResult Val
---hArrComma _ [] = throwError "Rank of array is too small for this operation."
 hArrComma arr (idExpr:[]) = do
   (Tint, Num id) <- evalExpr idExpr
   case compare (toInteger $ length arr) id of
     GT -> return $ arr !! (fromIntegral id)
     otherwise -> lift $ throwError "Index out of range."
-
---hArrComma arr (idExpr:idExprs) = do
---  (Tint, Num id) <- evalExpr idExpr
---  case compare (toInteger $ length arr) id of
---    GT -> hArrComma ((\(Arr arr) -> arr) (arr !! (fromIntegral id))) idExprs
---    otherwise -> lift $ throwError "Index out of range."
 
 
 hArrComma arr (idExpr:idExprs) = do
@@ -273,9 +264,14 @@ parseArgs [] [] = do
   env <- ask
   return (env, [])
 
-parseArgs ((Declarator ident paramType):vars) (val:vals) = do
-    env <- ask
-    env1 <- local (const env) $ declare ident paramType
-    local (const env1) $ assign (Evar ident) val
-    (env2, acc) <- local (const env1) $ parseArgs vars vals
-    return (env2, ident : acc)
+parseArgs ((Declarator argIdent argType):vars) ((pType, pVal):vals) = do
+    case argType == pType of
+        True -> do
+            env <- ask
+            env1 <- local (const env) $ declare argIdent argType
+            local (const env1) $ assign (Evar argIdent) (pType, pVal)
+            (env2, acc) <- local (const env1) $ parseArgs vars vals
+            return (env2, argIdent : acc)
+        False -> lift $ throwError "Invalid argument type."
+
+parseArgs _ _ = lift $ throwError "Invalid number or arguments passed to function."

@@ -10,6 +10,7 @@ import Control.Monad.Except
 type Loc = Int
 type TypedVal = (Type, Val)
 type FTypedVal = Either Flow TypedVal
+type FType = Either Flow Type
 
 type Env = [(Ident, Loc)]
 
@@ -22,6 +23,7 @@ type Funct = [TypedVal] -> PartialResult TypedVal
 data Flow
   = FBreak
   | FContinue
+  | FReturnVoid
   | FReturn TypedVal
 
 instance Show Flow where

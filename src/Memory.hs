@@ -1,7 +1,6 @@
 module Memory where
 
 import Datatypes
-import TypeCheck
 
 import ParYmyLang
 import LexYmyLang
@@ -64,3 +63,4 @@ getval loc = do
 
 deepCopy :: TypedVal -> PartialResult TypedVal
 deepCopy val = return val
+

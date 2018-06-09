@@ -17,6 +17,7 @@ def g :: Unit -> Unit (): {
 
     print "Expected 1";
     print z;
+    return;
 }
 
 g();
