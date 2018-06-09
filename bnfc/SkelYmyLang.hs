@@ -35,6 +35,7 @@ transType x = case x of
   Tbool -> failure x
   Tstring -> failure x
   Tany -> failure x
+  Tinvalid -> failure x
   Tfun type_1 type_2 -> failure x
   Tfunarg type_1 type_2 -> failure x
 transDecl_stmt :: Decl_stmt -> Result
@@ -62,6 +63,7 @@ transFlow_stmt x = case x of
   Scontinue -> failure x
   Sbreak -> failure x
   Sreturn exp -> failure x
+  SreturnVoid -> failure x
 transPrint_stmt :: Print_stmt -> Result
 transPrint_stmt x = case x of
   Sprint exp -> failure x

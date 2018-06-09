@@ -21,7 +21,8 @@ Tarray.		Type2 ::= "[" Type2 "]";
 Tint.		Type2 ::= "Int";
 Tbool.		Type2 ::= "Bool";
 Tstring.	Type2 ::= "String";
-Tany.       Type2 ::= "Any";
+Tany.       	Type2 ::= "Any";
+Tinvalid.	Type2 ::= "Invalid";
 
 -- trochę obejście ale nie chciałem pozwolić na zdefiniowanie (Int), bo nie planuję implementować tupli
 -- nie wiem też czy ta konstrukcja jest wymagana, bo mógłbym zostawić bez nawiasów,
@@ -52,6 +53,7 @@ SifElse.    Selection_stmt ::= "if" Exp ":" Stmt "else" ":" Stmt ;
 Scontinue.   	Flow_stmt ::= "continue" ";" ;
 Sbreak.		Flow_stmt ::= "break" ";" ;
 Sreturn. 	Flow_stmt ::= "return" Exp ";" ;
+SreturnVoid. 	Flow_stmt ::= "return" ";" ;
 
 -- print statement
 

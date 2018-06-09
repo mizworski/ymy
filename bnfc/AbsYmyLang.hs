@@ -31,6 +31,7 @@ data Type
     | Tbool
     | Tstring
     | Tany
+    | Tinvalid
     | Tfun Type Type
     | Tfunarg Type Type
   deriving (Eq, Ord, Show, Read)
@@ -53,7 +54,7 @@ data Expression_stmt = SexprEmpty | Sexpr Exp
 data Selection_stmt = Sif Exp Stmt | SifElse Exp Stmt Stmt
   deriving (Eq, Ord, Show, Read)
 
-data Flow_stmt = Scontinue | Sbreak | Sreturn Exp
+data Flow_stmt = Scontinue | Sbreak | Sreturn Exp | SreturnVoid
   deriving (Eq, Ord, Show, Read)
 
 data Print_stmt = Sprint Exp
