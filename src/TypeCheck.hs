@@ -31,7 +31,6 @@ checkRunStmt stmt = do
   env' <- ask
   checkStmt stmt Tinvalid
   return env'
-  --return (env', res)
   
 checkDecl :: Decl_stmt -> PartialResult Env
 checkDecl (DeclVar (Declarator name varType)) = declare name varType
@@ -69,20 +68,96 @@ checkFunArgs (Tfunarg argDeclType fnTypeResult) ((Declarator _ argActualType):ar
           True -> checkFunArgs fnTypeResult args
           False -> throwError "Argument type is invalid."
     
-
 checkFunArgs _ _ = throwError "Function argument checking failed."
 
 checkStmt :: Stmt -> Type -> PartialResult FTypedVal
-checkStmt (ExprS stmt) returnType = checkExprStmt stmt
-checkStmt (CompS stmt) returnType = checkCompoundStmt stmt
-checkStmt (SelS stmt) returnType = checkSelStmt stmt
-checkStmt (IterS stmt) returnType = checkIterStmt stmt
-checkStmt (FlowS stmt) returnType = checkFlowStmt stmt
-checkStmt (PrintS stmt) returnType = checkPrintStmt stmt
+checkStmt (ExprS stmt) _ = checkExprStmt stmt 
+checkStmt (CompS stmt) returnType = checkCompoundStmt stmt returnType
+checkStmt (SelS stmt) returnType = checkSelStmt stmt returnType
+checkStmt (IterS stmt) returnType = checkIterStmt stmt returnType
+checkStmt (FlowS stmt) returnType = checkFlowStmt stmt returnType
+checkStmt (PrintS stmt) _ = checkPrintStmt stmt
 
-checkExprStmt _ = return $ Right (Tunit, Undefined)
-checkCompoundStmt _ = return $ Right (Tunit, Undefined)
-checkSelStmt _ = return $ Right (Tunit, Undefined)
-checkIterStmt _ = return $ Right (Tunit, Undefined)
-checkFlowStmt _ = return $ Right (Tunit, Undefined)
-checkPrintStmt _ = return $ Right (Tunit, Undefined)
+checkCompoundStmt :: Compound_stmt -> Type -> PartialResult FTypedVal
+checkCompoundStmt (Scomp []) retType = return $ Right (Tunit, Undefined)
+checkCompoundStmt (Scomp ((DeclS decl):stmts)) retType = do
+  env' <- checkDecl decl
+  res <- local (const env') (checkCompoundStmt (Scomp stmts) retType)
+  return res
+checkCompoundStmt (Scomp (stmt:stmts)) retType = do
+  res <- checkStmt stmt retType
+  case res of
+    (Left FReturnVoid) -> do
+      case retType of
+        Tunit -> return $ Left FReturnVoid
+        otherwise -> throwError "Invalid return type"
+    (Left (FReturn (actualRetType, retVal))) -> do
+      case actualRetType == retType of
+        True -> return $ Left $ FReturn (actualRetType, retVal)
+        False -> throwError "Invalid return type"
+    otherwise -> do
+      res <- checkCompoundStmt (Scomp stmts) retType
+      return res
+      
+      
+checkFlowStmt :: Flow_stmt -> Type -> PartialResult FTypedVal
+checkFlowStmt Scontinue _ = return $ Left FContinue
+checkFlowStmt Sbreak _ = return $ Left FBreak
+checkFlowStmt SreturnVoid returnType = do 
+  case returnType of 
+    Tunit -> return $ Left FReturnVoid
+    otherwise -> throwError $ "Invalid return type, expected: " ++ (show returnType) ++ ", got: Unit"
+checkFlowStmt (Sreturn expr) expectedRetType = do
+  (actualRetType, retVal) <- checkExpr expr
+  case expectedRetType == actualRetType of
+    True -> return $ Left $ FReturn (actualRetType, retVal) 
+    False -> throwError $ "Invalid return type, expected: " ++ (show expectedRetType) ++ ", got: " ++ (show actualRetType)
+
+checkPrintStmt :: Print_stmt -> PartialResult FTypedVal
+checkPrintStmt (Sprint exp) = do 
+  res <- checkExpr exp
+  return $ Right res
+  
+checkSelStmt :: Selection_stmt -> Type -> PartialResult FTypedVal
+checkSelStmt (Sif condExp stmt) returnType = checkIfElse condExp stmt (ExprS SexprEmpty) returnType
+checkSelStmt (SifElse condExp stmtTrue stmtFalse) returnType = checkIfElse condExp stmtTrue stmtFalse returnType
+
+checkIfElse :: Exp -> Stmt -> Stmt -> Type -> PartialResult FTypedVal
+checkIfElse condExp stmtTrue stmtFalse returnType = do
+  (varType, val) <- checkExpr condExp
+  case varType of
+    Tbool -> do
+      checkStmt stmtTrue returnType
+      checkStmt stmtFalse returnType
+    otherwise -> throwError "Condition in if-statement must be boolean expression."
+    
+    
+checkIterStmt :: Iter_stmt -> Type -> PartialResult FTypedVal
+checkIterStmt (Swhile condExp evalStmt) returnType = checkLoop condExp evalStmt returnType
+checkIterStmt (Sfor initExpStmt condExpStmt incrExp evalStmt) returnType = checkFor condExpStmt evalStmt returnType
+checkIterStmt (Sfornoinc initExpStmt condExpStmt evalStmt) returnType = checkFor condExpStmt evalStmt returnType
+
+checkFor :: Expression_stmt -> Stmt -> Type -> PartialResult FTypedVal
+checkFor (Sexpr condExp) evalStmt returnType = do
+  (varType, _) <- checkExpr condExp
+  case varType of
+    Tbool -> checkStmt evalStmt returnType  
+    otherwise -> throwError "Condition in if-statement must be boolean expression."
+checkFor SexprEmpty evalStmt returnType = checkStmt evalStmt returnType
+  
+checkLoop :: Exp -> Stmt -> Type -> PartialResult FTypedVal
+checkLoop condExp stmt returnType = do
+  (varType, _) <- checkExpr condExp
+  case varType of
+    Tbool -> checkStmt stmt returnType  
+    otherwise -> throwError "Condition in if-statement must be boolean expression."
+    
+checkExprStmt :: Expression_stmt -> PartialResult FTypedVal
+checkExprStmt SexprEmpty = return $ Right (Tunit, Undefined)
+checkExprStmt (Sexpr expr) = do
+  res <- checkExpr expr
+  return $ Right res
+  
+checkExpr :: Exp -> PartialResult TypedVal
+checkExpr expr = return (Tunit, Undefined)
+

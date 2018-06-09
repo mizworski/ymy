@@ -23,11 +23,6 @@ Tbool.		Type2 ::= "Bool";
 Tstring.	Type2 ::= "String";
 Tany.       	Type2 ::= "Any";
 Tinvalid.	Type2 ::= "Invalid";
-
--- trochę obejście ale nie chciałem pozwolić na zdefiniowanie (Int), bo nie planuję implementować tupli
--- nie wiem też czy ta konstrukcja jest wymagana, bo mógłbym zostawić bez nawiasów,
--- jednak jeszcze nie jestem pewien czy będę implementował częściową aplikację, więc jeśli chcę 
--- przekazywać funkcje przez parametr to muszę to chyba tak zostawić
 Tfun.		Type  ::= "(" Type "->" Type ")" ;
 Tfunarg.	Type2 ::= Type "->" Type;
 

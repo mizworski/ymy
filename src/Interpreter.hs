@@ -23,13 +23,13 @@ import System.Environment
 
 interpret :: Env -> Store -> Program -> IO((Env, Store))
 interpret env store program = do
+  putStrLn $ show program
   checkRes <- runExceptT $ typeCheck env store program
   case checkRes of
     (Left e) -> do
       hPutStrLn stderr $ "Type error: " ++ e
       return (env, store)
     otherwise -> do
-      putStrLn $ show program
       res <- runExceptT $ runProg env store program
       case res of
         (Left e) -> do
