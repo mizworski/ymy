@@ -1,4 +1,4 @@
-default: install-deps build
+default: build
 
 install-deps:
 	cabal update; \
