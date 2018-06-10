@@ -46,7 +46,7 @@ print (jako słowo kluczowe),
 
 break, continue,
 
-return (tylko z expr)
+return
 
 Ponadto deklaracje zmiennych są traktowane jako instrukcje, mogą więc być robione na zmianę z pozostałymi instrukcjami.
 
@@ -54,24 +54,24 @@ Ponadto deklaracje zmiennych są traktowane jako instrukcje, mogą więc być�
 
 Wszystkie zmienne należy zadeklarować przed użyciem z podaniem dokładnego typu. Nie można od razu inicjalizować zmiennej. Funkcje deklarujemy w tej samej przestrzeni nazw co zmienne, gdyż traktujemy je podobnie jak zmienne. 
 
-Wszsystkie zmienne przekazywane są przez wartość (czy to dobry pomysł zważywszy na rekurencje i funkcje jako parametry?). 
+Wszsystkie zmienne przekazywane są przez wartość. 
 
 ```
-x = 2
-y = x
-x = 3
-print y // 2
+x = 2;
+y = x;
+x = 3;
+print y; // 2
 
-x = [[1], [2]]
-y = x
-x[0] = [1, 2]
-print y // [[1], [2]]
+x = [[1], [2]];
+y = x;
+x[0] = [1, 2];
+print y // [[1], [2]];
 
-x = lambda x :: Int : x + 1
-y = x
-x = lambda x :: Int : x + 2
-print x(1) // 3
-print y(1) // 2
+x = lambda x :: Int : x + 1;
+y = x;
+x = lambda x :: Int : x + 2;
+print x(1); // 3
+print y(1); // 2
 ```
 
 Występuje przesłanianie, statyczne wiązanie, zagnieżdżanie funkcji.
@@ -79,13 +79,10 @@ Występuje przesłanianie, statyczne wiązanie, zagnieżdżanie funkcji.
 Funkcje możemy definiować przy użyciu słowa 'def', ale musimy ją uprzednio zadeklarować.
 
 ```
-f :: Int -> Int
-def f(x): {
-	return x + 1
+def f :: Int -> Int (x :: Int): {
+	return x + 1;
 }
 ```
-
-Raczej nie planuję częściowej aplikacji.
 
 # Sprawdzanie typów
 
@@ -101,15 +98,15 @@ Zmienne deklarujemy podobnie jak w Haskellu. Nie ma możliwości podania rozmiar
 
 ```
 a :: [Int]
-a = [0] * 10
+a = [0] * 10;
 // len(a) == 10 , nie mamy wbudowanej funkcji len
 
 // Dodatkowo
 
-b :: [[Int]]
-b = [[1,2], [3,4]]
-b[0][1] // dobrze
-b[0, 1] // tez dobrze
+b :: [[Int]];
+b = [[1,2], [3,4]];
+b[0][1]; // dobrze
+b[0, 1]; // tez dobrze
 
 ```
 
@@ -118,9 +115,9 @@ b[0, 1] // tez dobrze
 Dostępne są funkcje anonimowe. Podczas tworzenia ich musimy podać typy wszystkich argumentów.
 
 ```
-x :: Int -> Int
-y :: Unit -> Int
-z :: Int
+x :: Int -> Int;
+y :: Unit -> Int;
+z :: Int;
 
 z = 3;
 x = lambda x :: Int : x * x;
@@ -161,6 +158,16 @@ Na 24 punkty
 (+) 13 (jeszcze coś lub dwa)
 ```
 
-# Uwagi do 1 terminu oddania.
+# Uwagi dotyczace ostatecznej wersji
 
-W języku zostały zaimplementowane wszystkie funkcjonalności. Brakuje jedynie statycznego typowania. 
+Pozostawilem enva jako liste par. Nie zmienilem store z par (typ, wartosc) na wartosc, anie nie dodalem nowego enva/stora dla type checka, a zamiast tego korzystam z tego samego enva i stora podczas statycznego typowania oraz dzialania interpretera. Swoja decyzje motywuje tym, ze moj program dziala w formie REPLa, wiec statyczne sprawdzenie musze robic na biezaco, wiec potrzebowalbym przechowywac jednoczesnie env+store dla dzialania interpretera oraz statycznego typowania, co jest wlasnie rownowazne przechowywaniu par.
+
+Minusem moze byc przy przyzwalanie na konstrukcje: def f :: TypyArgumentow -> Unit -> TypWyniku np.
+def x :: Int -> Unit -> Int (a :: Int) : return a;
+ale juz to zostawilem.
+konstrukcje typu:
+def x :: Int -> Unit -> Int -> Int (a :: Int, b :: Int) : return a;
+Type error: Expected type: 'Tunit', got: 'Tint'.
+def x :: Int -> Unit -> Int -> Int (a :: Int, b :: Unit, c :: Int) : return a;
+Syntax error
+nie przechodza.
