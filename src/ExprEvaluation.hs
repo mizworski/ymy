@@ -119,16 +119,6 @@ evalExpr (Earray (e:es)) = do
     True -> return (Tarray headType, Arr (headVal:tailVal))
     False -> lift $ throwError "Array types mismatch."
 
-evalExpr (Elambda args expr) = do
-  env <- ask
-  let fname params = do
-        (env1, _) <- local (const env) $ parseArgs args params
-        res <- local (const env1) $ evalExpr expr
-        return res
-  -- todo types
-  return (Tfunarg Tunit Tunit, Fun fname)
-
-
 evalExpr (Earrgetcom arrExp indices) = do
   (arrType, Arr arr) <- evalExpr arrExp
   elType <- getArrType arrType indices
@@ -142,6 +132,15 @@ evalExpr (Earrayget arrExp indExp) = do
     GT -> return (elType, arr !! (fromIntegral ind))
     otherwise -> lift $ throwError "Index out of range."
 
+evalExpr (Elambda args expr) = do
+  env <- ask
+  let fname params = do
+        (env1, _) <- local (const env) $ parseArgs args params
+        res <- local (const env1) $ evalExpr expr
+        return res
+  -- todo types
+  return (Tfunarg Tunit Tunit, Fun fname)
+  
 evalExpr (Efunkpar fnExpr paramsExpr) = do
   (Tfunarg _ retType, Fun fn) <- evalExpr fnExpr
   params <- mapM evalExpr paramsExpr

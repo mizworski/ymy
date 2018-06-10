@@ -38,20 +38,26 @@ checkDecl (DeclFn (Declarator name fnType) args stmt) = checkDefFun name fnType 
 
 checkDefFun :: Ident -> Type -> [Dec] -> Stmt -> PartialResult Env
 checkDefFun fnName fnType args stmt = do
+  reversedArgTypes <- parseDeclTypes args []
+  argTypes <- return $ reverse $ reversedArgTypes
+  returnType <- checkFunArgs fnType argTypes
   env <- ask
-  returnType <- checkFunArgs fnType args
-  checkStmt stmt returnType
   env1 <- local (const env) $ declare fnName fnType
+  env2 <- local (const env1) $ addArguments args [fnName]
+  local (const env2) $ checkStmt stmt returnType
   loc <- local (const env1) $ getloc (Evar fnName)
   store <- get
-
   case Data.Map.lookup loc store of
     Nothing -> throwError "Failed to declare Function."
     otherwise -> local (const env1) $ modify (Data.Map.insert loc (fnType, Undefined))
 
   return env1
 
-checkFunArgs :: Type -> [Dec] -> PartialResult Type  
+parseDeclTypes :: [Dec] -> [Type] -> PartialResult [Type]
+parseDeclTypes [] acc = return acc
+parseDeclTypes ((Declarator _ argType):args) acc = parseDeclTypes args (argType:acc)
+
+checkFunArgs :: Type -> [Type] -> PartialResult Type  
 checkFunArgs (Tfunarg Tunit fnTypeResult) [] = do
   case fnTypeResult of
     (Tfunarg _ _) -> throwError "Cannot take arguments after found Unit in declaration."
@@ -59,17 +65,32 @@ checkFunArgs (Tfunarg Tunit fnTypeResult) [] = do
 checkFunArgs (Tfunarg _ _) [] = throwError "Invalid number of arguments passed to function."
 checkFunArgs fnType [] = return fnType 
 
-checkFunArgs (Tfunarg argDeclType fnTypeResult) ((Declarator _ argActualType):args) = do
+checkFunArgs (Tfunarg argDeclType fnTypeResult) (argActualType:argsTypes) = do
   case argDeclType == argActualType of
-    True -> checkFunArgs fnTypeResult args
+    True -> checkFunArgs fnTypeResult argsTypes
     otherwise -> case argDeclType of 
       (Tfun firstArg resType) -> do 
         case (Tfunarg firstArg resType) == argActualType of
-          True -> checkFunArgs fnTypeResult args
+          True -> checkFunArgs fnTypeResult argsTypes
           False -> throwError "Argument type is invalid."
+      (expectedType) -> throwError $ "Expected type: '" ++ (show expectedType) ++ "', got: '" ++ (show argActualType) ++ "'."
     
-checkFunArgs _ _ = throwError "Function argument checking failed."
+checkFunArgs _ _ = throwError "Invalid number of arguments passed to function."
 
+addArguments :: [Dec] -> [Ident] -> PartialResult Env
+addArguments [] _ = do
+  env <- ask
+  return env
+
+addArguments ((Declarator argName argActualType):args) usedNames = do
+  case elem argName usedNames of 
+    True -> throwError $ "Multiple usage of name " ++ (show argName) ++ " in declaration of " ++ (show $ last usedNames)
+    otherwise -> do
+      env <- ask
+      env1 <- local (const env) $ addArguments args (argName:usedNames)
+      env2 <- local (const env1) $ declare argName argActualType
+      return env2
+      
 checkStmt :: Stmt -> Type -> PartialResult FTypedVal
 checkStmt (ExprS stmt) _ = checkExprStmt stmt 
 checkStmt (CompS stmt) returnType = checkCompoundStmt stmt returnType
@@ -159,7 +180,6 @@ checkExprStmt (Sexpr expr) = do
   return $ Right res
   
 checkExpr :: Exp -> PartialResult TypedVal
--- checkExpr expr = return (Tunit, Undefined)
 
 checkExpr (Eassign e1 op e2) = do 
   (t1, _) <- checkExpr e1
@@ -332,6 +352,16 @@ checkExpr (Epostdec e) = do
     Tint -> return (Tint, Undefined)
     otherwise -> throwError $ "Unsupported operand type for ++ (post decrement): '" ++ (show t) ++ "'."
     
+checkExpr (Efunkpar fnExpr paramsExpr) = do
+  (fnType, _) <- checkExpr fnExpr
+  case fnType of 
+    (Tfunarg _ _) -> do
+      reversedParamsTypes <- getParamsTypes paramsExpr []
+      paramsTypes <- return $ reverse $ reversedParamsTypes
+      returnType <- checkFunArgs fnType paramsTypes
+      return (returnType, Undefined)
+    otherwise -> throwError $ "'" ++ (show fnType) ++ "' object is not callable."
+
 checkExpr _ = throwError $ "Unexpected error occurred during type check."
 
 checkConst :: Constant -> PartialResult TypedVal
@@ -345,5 +375,10 @@ checkVar ident = do
   (t, _) <- getTypeOnly loc
   return (t, Undefined)
   
+getParamsTypes :: [Exp] -> [Type] -> PartialResult [Type]
+getParamsTypes [] parsedTypes = return parsedTypes
+getParamsTypes (paramExpr:paramsExprs) parsedTypes = do 
+  (t, _) <- checkExpr paramExpr  
+  getParamsTypes paramsExprs (t:parsedTypes)
 
   
