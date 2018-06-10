@@ -159,5 +159,191 @@ checkExprStmt (Sexpr expr) = do
   return $ Right res
   
 checkExpr :: Exp -> PartialResult TypedVal
-checkExpr expr = return (Tunit, Undefined)
+-- checkExpr expr = return (Tunit, Undefined)
 
+checkExpr (Eassign e1 op e2) = do 
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) of
+    True -> return (t1, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for =: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+
+checkExpr (Econdition be e1 e2) = do
+  (beType, _) <- checkExpr be
+  case beType of
+    Tbool -> do
+      (t1, _) <- checkExpr e1
+      (t2, _) <- checkExpr e2
+      case t1 == t2 of
+        True -> return (t1, Undefined)
+        False -> throwError $ "Unsupported operand type(s) for ?: '" ++ (show beType) ++ "', '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "', return types must be the same." 
+    otherwise -> throwError $ "Unsupported operand type(s) for ?: '" ++ (show beType) ++ "' as condition." 
+
+checkExpr (Econst const) = checkConst const
+checkExpr (Evar ident) = checkVar ident --dsdd
+checkExpr (Eplus e1 e2) = do -- dsds
+    (t1, _) <- checkExpr e1
+    (t2, _) <- checkExpr e2
+    case t1 == t2 of
+      True -> return (t1, Undefined)
+      False -> throwError $ "Unsupported operand type(s) for +: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+      
+checkExpr (Etimes e1 e2) = do
+    (t1, _) <- checkExpr e1
+    (t2, _) <- checkExpr e2
+    case t1 == t2 of
+      True -> do
+        case t1 of
+          Tint -> return (Tint, Undefined)
+          otherwise -> throwError $ "Unsupported operand type(s) for *: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+      False -> do
+        case t1 of
+          (Tarray _) -> do
+            case t2 of
+              Tint -> return (t1, Undefined)
+              otherwise -> throwError $ "Unsupported operand type(s) for *: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+          otherwise -> do
+            case t2 of
+              (Tarray _) -> do
+                case t1 of
+                  Tint -> return (t2, Undefined)
+                  otherwise -> throwError $ "Unsupported operand type(s) for *: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+              otherwise -> throwError $ "Unsupported operand type(s) for *: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+
+checkExpr (Eminus e1 e2) = do
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) && (t1 == Tint) of
+    True -> return (Tint, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for /: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+  
+checkExpr (Ediv e1 e2) = do
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) && (t1 == Tint) of
+    True -> return (Tint, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for /: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+  
+checkExpr (Emod e1 e2) = do
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) && (t1 == Tint) of
+    True -> return (Tint, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for /: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+
+checkExpr (Elor be1 be2) = do
+  (t1, _) <- checkExpr be1
+  (t2, _) <- checkExpr be2
+  case (t1 == t2) && (t1 == Tbool) of
+    True -> return (Tbool, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for or: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+    
+checkExpr (Eland be1 be2) = do
+  (t1, _) <- checkExpr be1
+  (t2, _) <- checkExpr be2
+  case (t1 == t2) && (t1 == Tbool) of
+    True -> return (Tbool, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for and: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+    
+checkExpr (Eeq e1 e2) = do
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) && (t1 == Tint) of
+    True -> return (Tbool, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for ==: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+checkExpr (Eneq e1 e2) = do
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) && (t1 == Tint) of
+    True -> return (Tbool, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for !=: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+checkExpr (Elthen e1 e2) = do
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) && (t1 == Tint) of
+    True -> return (Tbool, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for <: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+checkExpr (Ele e1 e2) = do
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) && (t1 == Tint) of
+    True -> return (Tbool, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for <=: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+checkExpr (Egrthen e1 e2) = do
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) && (t1 == Tint) of
+    True -> return (Tbool, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for >: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+checkExpr (Ege e1 e2) = do
+  (t1, _) <- checkExpr e1
+  (t2, _) <- checkExpr e2
+  case (t1 == t2) && (t1 == Tint) of
+    True -> return (Tbool, Undefined)
+    False -> throwError $ "Unsupported operand type(s) for >=: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+
+checkExpr (Epreoplog Logicalneg be) = do
+  (t, _) <- checkExpr be
+  case t of 
+    Tbool -> return (Tbool, Undefined)
+    otherwise -> throwError $ "Unsupported operand type for not: '" ++ (show t) ++ "'." 
+
+checkExpr (Epreopexp op e) = do
+  (t, _) <- checkExpr e
+  case t of
+    Tint -> return (Tint, Undefined)
+    otherwise -> case op of 
+      Plus -> throwError $ "Unsupported operand type for unary +: '" ++ (show t) ++ "'." 
+      Negative -> throwError $ "Unsupported operand type for unary -: '" ++ (show t) ++ "'."
+      
+checkExpr (Earray []) = return (Tarray Tany, Undefined)
+checkExpr (Earray (e:es)) = do
+  (headType, _) <- checkExpr e
+  (tailType, _) <- checkExpr $ Earray es
+  case tailType of 
+    (Tarray tailInnerType) -> do
+      case headType == tailInnerType || tailInnerType == Tany of
+        True -> return (Tarray headType, Undefined)
+        False -> throwError "Array types mismatch." 
+    
+checkExpr (Earrayget arrExp indExp) = do
+  (t, _) <- checkExpr indExp
+  case t of 
+    Tint -> do
+      (arrType, _) <- checkExpr arrExp
+      case arrType of 
+        (Tarray innerType) -> return (innerType, Undefined)
+        otherwise -> throwError $ "Unsupported operand type for []: '" ++ (show arrType) ++ "'."
+    otherwise -> throwError $ "Unsupported indices type: '" ++ (show t) ++ "'."
+
+checkExpr (Earrgetcom arrExp inds) = do
+  (arrType, _) <- checkExpr arrExp
+  innerType <- getArrType arrType inds
+  return (innerType, Undefined)
+  
+checkExpr (Epostinc e) = do
+  (t, _) <- checkExpr e
+  case t of 
+    Tint -> return (Tint, Undefined)
+    otherwise -> throwError $ "Unsupported operand type for ++ (post increment): '" ++ (show t) ++ "'."
+checkExpr (Epostdec e) = do
+  (t, _) <- checkExpr e
+  case t of 
+    Tint -> return (Tint, Undefined)
+    otherwise -> throwError $ "Unsupported operand type for ++ (post decrement): '" ++ (show t) ++ "'."
+    
+checkExpr _ = throwError $ "Unexpected error occurred during type check."
+
+checkConst :: Constant -> PartialResult TypedVal
+checkConst (Einteger  int) = return (Tint, Undefined)
+checkConst (Estring str) = return (Tstring, Undefined)
+checkConst _ = return (Tbool, Undefined)
+
+checkVar :: Ident -> PartialResult TypedVal
+checkVar ident = do
+  loc <- getloc (Evar ident)
+  (t, _) <- getTypeOnly loc
+  return (t, Undefined)
+  
+
+  

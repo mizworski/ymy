@@ -53,8 +53,8 @@ evalExpr (Eplus e1 e2) = do
           Tint -> return $ (Tint, Num $ (+) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
           (Tarray _) -> return $ (t1, Arr $ ((\(Arr xs) -> xs) v1) ++ (((\(Arr xs) -> xs) v2)))
           Tstring -> return $ (t1, Str $ ((\(Str xs) -> xs) v1) ++ (((\(Str xs) -> xs) v2)))
-          otherwise -> throwError "Operation plus not implemented on these datatypes."
-      False -> lift $ throwError "Both elements has to be of same type."
+          otherwise -> throwError $ "Unsupported operand type(s) for +: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+      False -> lift $ throwError $ "Unsupported operand type(s) for +: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
 
 evalExpr (Etimes e1 e2) = do
     (t1, v1) <- evalExpr e1
@@ -63,20 +63,20 @@ evalExpr (Etimes e1 e2) = do
       True -> do
         case t1 of
           Tint -> return $ (Tint, Num $ (*) ((\(Num x) -> x) v1) ((\(Num x) -> x) v2))
-          otherwise -> lift $ throwError "Cannot multiply these types."
+          otherwise -> lift $ throwError $ "Unsupported operand type(s) for +: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
       False -> do
         case t1 of
           (Tarray _) -> do
             case t2 of
               Tint -> return $ (t1, Arr $ duplicateArr ((\(Arr xs) -> xs) v1) (((\(Num x) -> x) v2)) [])
-              otherwise -> throwError "Arrays can be multiplied only by Int."
+              otherwise -> throwError $ "Unsupported operand type(s) for +: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
           otherwise -> do
             case t2 of
               (Tarray _) -> do
                 case t1 of
                   Tint -> return $ (t2, Arr $ duplicateArr ((\(Arr xs) -> xs) v2) (((\(Num x) -> x) v1)) [])
-                  otherwise -> throwError "Arrays can be multiplied only by Int."
-              otherwise -> lift $ throwError "Cannot multiply these types."
+                  otherwise -> throwError $ "Unsupported operand type(s) for +: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+              otherwise -> lift $ throwError $ "Unsupported operand type(s) for +: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
 
 evalExpr (Eminus e1 e2) = evalBinOpInt e1 e2 (-)
 evalExpr (Ediv e1 e2) = do
@@ -130,9 +130,10 @@ evalExpr (Elambda args expr) = do
 
 
 evalExpr (Earrgetcom arrExp indices) = do
-  (Tarray elType, Arr arr) <- evalExpr arrExp
-  res <- hArrComma arr indices
-  return $ (Tarray elType, res)
+  (arrType, Arr arr) <- evalExpr arrExp
+  elType <- getArrType arrType indices
+  arrContent <- hArrComma arr indices
+  return $ (elType, arrContent)
 
 evalExpr (Earrayget arrExp indExp) = do
   (Tint, Num ind)<- evalExpr indExp
@@ -201,8 +202,11 @@ duplicateArr arr mul acc = duplicateArr arr (mul - 1) (arr ++ acc)
 assign :: Exp -> TypedVal -> PartialResult ()
 assign (Evar ident) typedVal = do
   loc <- getloc $ Evar ident
-  val <- deepCopy typedVal
-  modify $ Data.Map.insert loc typedVal
+  (t1, _) <- getTypeOnly loc
+  (t2, val) <- deepCopy typedVal
+  case t1 == t2 of 
+    True -> modify $ Data.Map.insert loc (t1, val)
+    False -> throwError $ "Unsupported operand type(s) for =: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
 
 assign (Earrgetcom lvalue (idExpr:[])) val = assign (Earrayget lvalue idExpr) val
 assign (Earrgetcom lvalue (idExpr:idExprs)) val = assign (Earrgetcom (Earrayget lvalue idExpr) idExprs) val

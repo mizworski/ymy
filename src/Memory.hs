@@ -61,6 +61,19 @@ getval loc = do
     Just (_, Undefined) -> throwError $ "Undefinded var at loc: " ++ show loc
     Just val -> return val
 
+getTypeOnly :: Loc -> PartialResult TypedVal
+getTypeOnly loc = do
+  store <- get
+  case Data.Map.lookup loc store of
+    Nothing -> throwError $ "Internal Error - invalid loc: " ++ show loc
+    Just val -> return val
+
+
 deepCopy :: TypedVal -> PartialResult TypedVal
 deepCopy val = return val
 
+
+getArrType :: Type -> [Exp] -> PartialResult Type
+getArrType arrType [] = return arrType
+getArrType (Tarray innerType) (ind:inds) = getArrType innerType inds
+getArrType _ _ = throwError $ "Array rank is too small. Too many indices."
