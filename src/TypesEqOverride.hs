@@ -9,4 +9,6 @@ instance Eq Type where
   (Tarray t1) == (Tarray t2) = t1 == t2
   (Tfun f1 f2) == (Tfun g1 g2) = (f1 == g1) && (f2 == g2)
   (Tfunarg f1 f2) == (Tfunarg g1 g2) = (f1 == g1) && (f2 == g2)
+  (Tfun f1 f2) == (Tfunarg g1 g2) = (f1 == g1) && (f2 == g2)
+  (Tfunarg f1 f2) == (Tfun g1 g2) = (f1 == g1) && (f2 == g2)
   _ == _ = False

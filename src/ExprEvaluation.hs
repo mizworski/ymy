@@ -138,8 +138,8 @@ evalExpr (Elambda args expr) = do
         (env1, _) <- local (const env) $ parseArgs args params
         res <- local (const env1) $ evalExpr expr
         return res
-  -- todo types
-  return (Tfunarg Tunit Tunit, Fun fname)
+  (fnType, _) <- checkExpr (Elambda args expr)
+  return (fnType, Fun fname)
   
 evalExpr (Efunkpar fnExpr paramsExpr) = do
   (Tfunarg _ retType, Fun fn) <- evalExpr fnExpr

@@ -75,6 +75,7 @@ checkFunArgs (Tfunarg argDeclType fnTypeResult) (argActualType:argsTypes) = do
           False -> throwError "Argument type is invalid."
       (expectedType) -> throwError $ "Expected type: '" ++ (show expectedType) ++ "', got: '" ++ (show argActualType) ++ "'."
     
+checkFunArgs (Tfun arg res) acc = checkFunArgs (Tfunarg arg res) acc
 checkFunArgs _ _ = throwError "Invalid number of arguments passed to function."
 
 addArguments :: [Dec] -> [Ident] -> PartialResult Env
@@ -360,9 +361,21 @@ checkExpr (Efunkpar fnExpr paramsExpr) = do
       paramsTypes <- return $ reverse $ reversedParamsTypes
       returnType <- checkFunArgs fnType paramsTypes
       return (returnType, Undefined)
+    (Tfun _ _) -> do
+      reversedParamsTypes <- getParamsTypes paramsExpr []
+      paramsTypes <- return $ reverse $ reversedParamsTypes
+      returnType <- checkFunArgs fnType paramsTypes
+      return (returnType, Undefined)
     otherwise -> throwError $ "'" ++ (show fnType) ++ "' object is not callable."
-
-checkExpr _ = throwError $ "Unexpected error occurred during type check."
+    
+checkExpr (Elambda args expr) = do
+  reversedArgTypes <- parseDeclTypes args []
+  argTypes <- return $ reverse $ reversedArgTypes
+  env <- ask
+  env1 <- local (const env) $ addArguments args []
+  (retType, _) <- local (const env1) $ checkExpr expr
+  fnType <- constructFunction (retType:reversedArgTypes) Tunit
+  return (fnType, Undefined)
 
 checkConst :: Constant -> PartialResult TypedVal
 checkConst (Einteger  int) = return (Tint, Undefined)
@@ -380,5 +393,11 @@ getParamsTypes [] parsedTypes = return parsedTypes
 getParamsTypes (paramExpr:paramsExprs) parsedTypes = do 
   (t, _) <- checkExpr paramExpr  
   getParamsTypes paramsExprs (t:parsedTypes)
+  
+constructFunction :: [Type] -> Type -> PartialResult Type
+constructFunction [] fnType = return fnType
+constructFunction (retType:[]) Tunit = return $ Tfunarg Tunit retType
+constructFunction (retType:arg:args) Tunit = constructFunction args (Tfunarg arg retType)
+constructFunction (arg:args) partialFnType = constructFunction args (Tfunarg arg partialFnType) 
 
   
