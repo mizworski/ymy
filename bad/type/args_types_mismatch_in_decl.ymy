@@ -1,0 +1,3 @@
+def f :: Int -> Int -> Int (x :: String, y :: Int) : return y;
+
+f("a", 2);

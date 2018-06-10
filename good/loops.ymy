@@ -9,7 +9,7 @@ while not False: {
         break;
 }
 
-print "Expected odd number lower than 20";
+print "Odd numbers lower than 20";
 i = 0;
 for ; ; : {
     i++;

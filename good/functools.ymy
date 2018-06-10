@@ -1,34 +1,29 @@
-// len :: [Int] -> Int
-
-map :: (Int -> Int) -> [Int] -> [Int];
-def map(f, a): {
+def map :: (Int -> Int) -> [Int] -> Int -> [Int] (f :: Int -> Int, a :: [Int], len :: Int): {
     i :: Int;
     i = 0;
-    for i = 0; i < len(a); i++: 
+    for i = 0; i < len; i++: 
         a[i] = f(a[i]);
     
     return a;
 }
 
-reduce :: (Int -> Int -> Int) -> [Int] -> Int;
-def reduce(f, a): {
+def reduce :: (Int -> Int -> Int) -> [Int] -> Int -> Int (f :: Int -> Int -> Int, a :: [Int], len :: Int): {
         acc :: Int; 
-        acc = arr[0];
+        acc = a[0];
         i :: Int; 
-        for i = 1; i < len(arr); i++: 
+        for i = 1; i < len; i++: 
             acc = f(a[i], acc);
 
         return acc;
 }
 
-filter :: (Int -> Bool) -> [Int] -> [Int];
-def filter (predicate, a): {
+def filter :: (Int -> Bool) -> [Int] -> Int -> [Int] (predicate :: Int -> Bool, a :: [Int], len :: Int): {
     res :: [Int]; 
     res = [];
     i :: Int; 
-    for i = 0; i < len(a); i++: 
+    for i = 0; i < len; i++: 
         if predicate(a[i]):
-            res += [ a[i] ];
+            res += [a[i]];
     
     return res;
 }
@@ -37,27 +32,23 @@ def filter (predicate, a): {
 
 
 a :: [Int];
-a = [1, 2, 3];
-print "a: " + a; 
+a = [1, 2, 3, 4, 5];
+len :: Int;
+len = 5;
+print "a:"; 
+print a; 
 
-print " ^2 ";
-a = map (lambda x :: Int : x * x, a);
-print "a: " + a;
+print "sum: ";
+print reduce(lambda x :: Int, acc :: Int: x + acc, a, len);
 
-print " *3 ";
-a = map (lambda x :: Int : x * 3, a);
-print "a: " + a; 
+print "a^2:";
+a = map (lambda x :: Int : x * x, a, len); 
+print a; 
 
-print "Odd elements: " + filter (lambda x :: Int : x % 2 == 0, a);
+print "a*3 ";
+a = map (lambda x :: Int : x * 3, a, len);
+print a; 
 
-// jeśli czas pozwoli - dorobię jeszcze częściową aplikację
-// max :: [Int] -> Int;
-// min :: [Int] -> Int;
-// sum :: [Int] -> Int;
-// max = reduce (lambda x :: Int : lambda y :: Int : if x > y then x else y);
-// min = reduce (lambda x :: Int : lambda y :: Int : if x < y then x else y);
-// sum = reduce (lambda x :: Int : lambda y :: Int : x + y);
+print "Even elements: ";
+print filter (lambda x :: Int : x % 2 == 0, a, len);
 
-//print "Max: " + max(a);
-//print "Min: " + min(a);
-//print "Sum: " + sum(a);

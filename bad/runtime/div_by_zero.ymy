@@ -1,0 +1,9 @@
+x :: Int;
+y :: Int;
+
+x = 2;
+y = 0;
+
+print x / y;
+
+print x % y;

@@ -23,7 +23,6 @@ import System.Environment
 
 interpret :: Env -> Store -> Program -> IO((Env, Store))
 interpret env store program = do
-  --putStrLn $ show program
   checkRes <- runExceptT $ typeCheck env store program
   case checkRes of
     (Left e) -> do
@@ -36,8 +35,6 @@ interpret env store program = do
            hPutStrLn stderr $ "Runtime error: " ++ e
            return (env, store)
         (Right (env', store')) -> do
-           --putStrLn $ show env'
-           --putStrLn $ showStore store'
            return (env', store')
 
 

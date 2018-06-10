@@ -23,15 +23,19 @@ f :: Bool;
 t = True;
 f = False;
 
+print "True and False?";
 print t and f;
+print "True and True?";
 print t and t;
+print "False or False?";
 print f or f;
+print "False or True?";
 print f or t;
 
-print "Div by 0 err.";
-x = 2 / 0;
+// print "Div by 0 err.";
+// x = 2 / 0;
 
-print "2 > 0";
+print "2 > 0?";
 print 2 > 0;
 
 print "-1 < -2 ? tak : nie";

@@ -1,0 +1,16 @@
+def f :: Int -> Int -> Int (x :: Int, x :: Int) : return x + x;
+
+def g :: Int -> String -> Int (x :: Int, x :: String) : {
+  print x;
+  return x;
+}
+
+f(1,1);
+g(1,"2");
+
+def h :: Int -> Int (h :: Int) : return h(h);
+
+u :: Int -> Int -> Int;
+u = lambda w :: Int, w :: Int: w + w;
+
+u(1,2);

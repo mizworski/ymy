@@ -1,0 +1,9 @@
+def f :: Int -> Int (x :: Int) : {
+  print x;
+  x += 2;
+  print x;
+}
+
+print "This code is reached.";
+f(2);
+print "This code is not.";

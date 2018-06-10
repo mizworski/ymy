@@ -1,0 +1,25 @@
+x :: [Int];
+y :: [Int];
+
+x = [0] * 10;
+y = [0] * 5;
+
+
+x * y; 
+// x++;
+// y += 1;
+
+f :: Int -> Int;
+// f = 2;
+// f = lambda x :: String: 22;
+
+f = lambda x :: Int: x + 2;
+// f("2");
+
+// x = [[1,2]];
+
+z :: Int;
+// z = 0 < 1 ? 1 : "false";
+// z = 1 ? 1 : 2;
+
+// if 1: print "True"; else: print "False";

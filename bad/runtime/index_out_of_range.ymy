@@ -1,0 +1,6 @@
+a :: [Int];
+
+a = [0] * 10;
+
+i :: Int;
+for i = 0; i < 20; i++: print a[i];
