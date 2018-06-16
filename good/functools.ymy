@@ -1,27 +1,27 @@
-def map :: (Int -> Int) -> [Int] -> Int -> [Int] (f :: Int -> Int, a :: [Int], len :: Int): {
+def map :: (Int -> Int) -> [Int] -> [Int] (f :: Int -> Int, a :: [Int]): {
     i :: Int;
     i = 0;
-    for i = 0; i < len; i++: 
+    for i = 0; i < length a; i++: 
         a[i] = f(a[i]);
     
     return a;
 }
 
-def reduce :: (Int -> Int -> Int) -> [Int] -> Int -> Int (f :: Int -> Int -> Int, a :: [Int], len :: Int): {
+def reduce :: (Int -> Int -> Int) -> [Int] -> Int (f :: Int -> Int -> Int, a :: [Int]): {
         acc :: Int; 
         acc = a[0];
         i :: Int; 
-        for i = 1; i < len; i++: 
+        for i = 1; i < length a; i++: 
             acc = f(a[i], acc);
 
         return acc;
 }
 
-def filter :: (Int -> Bool) -> [Int] -> Int -> [Int] (predicate :: Int -> Bool, a :: [Int], len :: Int): {
+def filter :: (Int -> Bool) -> [Int] -> [Int] (predicate :: Int -> Bool, a :: [Int]): {
     res :: [Int]; 
     res = [];
     i :: Int; 
-    for i = 0; i < len; i++: 
+    for i = 0; i < length a; i++: 
         if predicate(a[i]):
             res += [a[i]];
     
@@ -33,22 +33,20 @@ def filter :: (Int -> Bool) -> [Int] -> Int -> [Int] (predicate :: Int -> Bool, 
 
 a :: [Int];
 a = [1, 2, 3, 4, 5];
-len :: Int;
-len = 5;
 print "a:"; 
 print a; 
 
 print "sum: ";
-print reduce(lambda x :: Int, acc :: Int: x + acc, a, len);
+print reduce(lambda x :: Int, acc :: Int: x + acc, a);
 
 print "a^2:";
-a = map (lambda x :: Int : x * x, a, len); 
+a = map (lambda x :: Int : x * x, a); 
 print a; 
 
 print "a*3 ";
-a = map (lambda x :: Int : x * 3, a, len);
+a = map (lambda x :: Int : x * 3, a);
 print a; 
 
 print "Even elements: ";
-print filter (lambda x :: Int : x % 2 == 0, a, len);
+print filter (lambda x :: Int : x % 2 == 0, a);
 

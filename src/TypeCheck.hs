@@ -336,6 +336,12 @@ checkExpr (Earray (e:es)) = do
         True -> return (Tarray headType, Undefined)
         False -> throwError "Array types mismatch." 
     
+checkExpr (Elength arrExp) = do
+  (t, _) <- checkExpr arrExp
+  case t of 
+    (Tarray _) -> return (Tint, Undefined)
+    otherwise -> throwError $ "Unsupported operand type for 'length': '" ++ (show t) ++ "'."    
+    
 checkExpr (Earrayget arrExp indExp) = do
   (t, _) <- checkExpr indExp
   case t of 

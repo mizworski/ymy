@@ -173,6 +173,7 @@ instance Print Exp where
     Emod exp1 exp2 -> prPrec i 10 (concatD [prt 10 exp1, doc (showString "%"), prt 11 exp2])
     Earray exps -> prPrec i 11 (concatD [doc (showString "["), prt 0 exps, doc (showString "]")])
     Epreopexp unaryexpoperator exp -> prPrec i 11 (concatD [prt 0 unaryexpoperator, prt 11 exp])
+    Elength exp -> prPrec i 11 (concatD [doc (showString "length"), prt 11 exp])
     Epostinc exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "++")])
     Epostdec exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "--")])
     Efunkpar exp exps -> prPrec i 12 (concatD [prt 12 exp, doc (showString "("), prt 0 exps, doc (showString ")")])

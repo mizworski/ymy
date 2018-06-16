@@ -88,6 +88,7 @@ transExp x = case x of
   Emod exp1 exp2 -> failure x
   Earray exps -> failure x
   Epreopexp unaryexpoperator exp -> failure x
+  Elength exp -> failure x
   Epostinc exp -> failure x
   Epostdec exp -> failure x
   Efunkpar exp exps -> failure x

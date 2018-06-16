@@ -80,6 +80,7 @@ data Exp
     | Emod Exp Exp
     | Earray [Exp]
     | Epreopexp Unary_exp_operator Exp
+    | Elength Exp
     | Epostinc Exp
     | Epostdec Exp
     | Efunkpar Exp [Exp]

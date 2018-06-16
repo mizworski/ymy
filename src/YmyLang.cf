@@ -71,6 +71,7 @@ Ediv.        Exp10 ::= Exp10 "/" Exp11;
 Emod.        Exp10 ::= Exp10 "%" Exp11;
 Earray.      Exp11 ::= "[" [Exp] "]" ;
 Epreopexp.   Exp11 ::= Unary_exp_operator Exp11;
+Elength.     Exp11 ::= "length" Exp11;
 Epostinc.    Exp12 ::= Exp12 "++";
 Epostdec.    Exp12 ::= Exp12 "--";
 Efunkpar.    Exp12 ::= Exp12 "(" [Exp] ")";

@@ -132,6 +132,10 @@ evalExpr (Earrayget arrExp indExp) = do
     GT -> return (elType, arr !! (fromIntegral ind))
     otherwise -> lift $ throwError "Index out of range."
 
+evalExpr (Elength arrExp) = do
+  (Tarray elType, Arr arr) <- evalExpr arrExp
+  return (Tint, Num $ fromIntegral $ length $ arr)
+
 evalExpr (Elambda args expr) = do
   env <- ask
   let fn params = do
