@@ -48,7 +48,7 @@ getloc :: Exp -> PartialResult Loc
 getloc (Evar ident) = do
   env <- ask
   case lookup ident env of
-    Nothing -> throwError $ "Undeclared var: " ++ show ident
+    Nothing -> throwError $ "Undeclared variable: " ++ show ident
     Just loc -> return loc
 
 getloc (Earrayget lvalue ind) = getloc lvalue
@@ -58,8 +58,17 @@ getval loc = do
   store <- get
   case Data.Map.lookup loc store of
     Nothing -> throwError $ "Internal Error - invalid loc: " ++ show loc
-    Just (_, Undefined) -> throwError $ "Undefinded var at loc: " ++ show loc
+    Just (_, Undefined) -> do
+      env <- ask
+      varName <- findVarName loc env
+      throwError $ "Undefinded variable: " ++ show varName
     Just val -> return val
+
+findVarName :: Loc -> Env -> PartialResult Ident
+findVarName loc ((varIdent, varLoc):vars) = do 
+  case loc == varLoc of 
+    True -> return varIdent
+    False -> findVarName loc vars
 
 getTypeOnly :: Loc -> PartialResult TypedVal
 getTypeOnly loc = do

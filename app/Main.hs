@@ -21,10 +21,11 @@ interpreter env store = do
   stmt <- parseLines
   case (pProgram $ myLexer stmt) of
     (Ok p) -> do
+      -- putStrLn $ show p
       (env', store') <- interpret env store p
       interpreter env' store'
     (Bad p) -> do
-      putStrLn $ "Syntax error"
+      putStrLn p
       interpreter env store
 
 
@@ -51,7 +52,7 @@ runFromFile filename env store = do
       (env', store') <- interpret env store p
       return()
     (Bad p) -> do
-      putStrLn $ "Syntax error"
+      putStrLn p
 
 main :: IO ()
 main = do

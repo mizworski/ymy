@@ -26,13 +26,13 @@ data Dec = Declarator Ident Type
 
 data Type
     = Tunit
+    | Tfun Type Type
     | Tarray Type
     | Tint
     | Tbool
     | Tstring
     | Tany
     | Tinvalid
-    | Tfun Type Type
     | Tfunarg Type Type
   deriving (Ord, Show, Read)
 

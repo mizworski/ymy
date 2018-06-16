@@ -1,0 +1,59 @@
+def f_lambdas :: Unit -> (Unit -> (Int -> Int))  () : {
+return lambda: lambda x :: Int: x + 2;
+}
+
+def f :: Unit -> (Unit -> (Int -> Int)) (): {
+   def g :: Unit -> (Int -> Int) (): {
+     def h :: Int -> Int (x :: Int) : { return x + 2; }
+     return h;
+   }
+   return g;
+}
+
+print f;
+print f();
+print f()();
+print f()()(2);
+
+def f2 :: Unit -> (Int -> (Int -> Int)) (): {
+   def g2 :: Int -> (Int -> Int) (y :: Int): {
+     def h2 :: Int -> Int (x :: Int) : { return x + 2; }
+     return h2;
+   }
+   return g2;
+}
+
+// todo
+def f3 :: Unit -> (Int -> (Unit -> Int)) (): {
+   def g3 :: Int -> (Unit -> Int) (y :: Int): {
+     def h3 :: Unit -> Int () : { return 22; }
+     return h3;
+   }
+   return g3;
+}
+
+def f4 :: Unit -> (Unit -> (Unit -> Int)) (): {
+   def g :: Unit -> (Unit -> Int) (): {
+     def h :: Unit -> Int () : { return 2; }
+     return h;
+   }
+   return g;
+}
+
+def f5 :: Unit -> (Unit -> Int) (): {
+     def h3 :: Unit -> Int () : { return 22; }
+     return h3;
+}
+
+def f6 :: Unit -> (Int -> (Unit -> Int)) (): {
+   def g3 :: Int -> (Unit -> Int) (y :: Int): {
+     return lambda: 2;
+   }
+   return g3;
+}
+
+def f7 :: Unit -> (Int -> (Unit -> Int)) (): {
+   return lambda x:: Int: lambda: x+2;
+}
+
+

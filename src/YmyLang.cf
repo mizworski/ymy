@@ -1,4 +1,4 @@
-entrypoints Program, Stmt, Exp ;
+entrypoints Program ;
 
 Progr.  Program ::= [Stmt] ;
 
@@ -17,21 +17,19 @@ Declarator. 	Dec  ::= Ident "::" Type2 ;
 separator Dec "," ;
 
 Tunit.		Type  ::= "Unit";
+Tfun.		Type  ::= "(" Type "->" Type ")" ;
 Tarray.		Type2 ::= "[" Type2 "]";
 Tint.		Type2 ::= "Int";
 Tbool.		Type2 ::= "Bool";
 Tstring.	Type2 ::= "String";
 Tany.       	Type2 ::= "Any";
 Tinvalid.	Type2 ::= "Invalid";
-Tfun.		Type  ::= "(" Type "->" Type ")" ;
 Tfunarg.	Type2 ::= Type "->" Type;
 
 coercions Type 2 ;
 
 DeclVar.    Decl_stmt ::= Dec ";" ;
 DeclFn.     Decl_stmt ::= "def" Dec "(" [Dec] ")" ":" Stmt ;
-
-separator Ident "," ;
 
 Scomp.   Compound_stmt ::= "{" [Stmt] "}" ;
 
@@ -59,7 +57,7 @@ Eassign.     Exp2  ::= Exp12 Assignment_op Exp;
 Econdition.  Exp3  ::= Exp4 "?" Exp ":" Exp3;
 Elor.        Exp4  ::= Exp4 "or" Exp5;
 Eland.       Exp5  ::= Exp5 "and" Exp6;
-Epreoplog.   Exp6  ::= Unary_log_operator Exp5;
+Epreoplog.   Exp6  ::= Unary_log_operator Exp6;
 Eeq.         Exp7  ::= Exp7 "==" Exp8;
 Eneq.        Exp7  ::= Exp7 "!=" Exp8;
 Elthen.      Exp8  ::= Exp8 "<" Exp9;
@@ -72,12 +70,12 @@ Etimes.      Exp10 ::= Exp10 "*" Exp11;
 Ediv.        Exp10 ::= Exp10 "/" Exp11;
 Emod.        Exp10 ::= Exp10 "%" Exp11;
 Earray.      Exp11 ::= "[" [Exp] "]" ;
-Epreopexp.   Exp11 ::= Unary_exp_operator Exp10;
+Epreopexp.   Exp11 ::= Unary_exp_operator Exp11;
 Epostinc.    Exp12 ::= Exp12 "++";
 Epostdec.    Exp12 ::= Exp12 "--";
 Efunkpar.    Exp12 ::= Exp12 "(" [Exp] ")";
-Earrayget.   Exp12 ::= Exp12 "[" Exp9 "]" ;
-Earrgetcom.  Exp12 ::= Exp12 "[" [Exp9] "]" ;
+Earrayget.   Exp12 ::= Exp12 "[" Exp "]" ;
+Earrgetcom.  Exp12 ::= Exp12 "[" [Exp] "]" ;
 Evar.        Exp13 ::= Ident;
 Econst.      Exp13 ::= Constant;
 
@@ -87,7 +85,6 @@ Etrue.      Constant ::= "True";
 Efalse.     Constant ::= "False";
 
 separator Exp "," ;
-separator Exp9 "," ;
 coercions Exp 13 ;
 
 Plus.        Unary_exp_operator ::= "+" ;

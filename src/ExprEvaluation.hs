@@ -134,18 +134,26 @@ evalExpr (Earrayget arrExp indExp) = do
 
 evalExpr (Elambda args expr) = do
   env <- ask
-  let fname params = do
+  let fn params = do
         (env1, _) <- local (const env) $ parseArgs args params
         res <- local (const env1) $ evalExpr expr
         return res
   (fnType, _) <- checkExpr (Elambda args expr)
-  return (fnType, Fun fname)
+  return (fnType, Fun fn)
   
 evalExpr (Efunkpar fnExpr paramsExpr) = do
-  (Tfunarg _ retType, Fun fn) <- evalExpr fnExpr
-  params <- mapM evalExpr paramsExpr
-  retVal <- fn params
-  return retVal
+  (_, Fun fn) <- evalExpr fnExpr
+  (fnType, _) <- checkExpr fnExpr
+  case fnType of 
+    (Tfunarg _ retType) -> do 
+      params <- mapM evalExpr paramsExpr
+      (_, retVal) <- fn params
+      
+      return (retType, retVal)
+    (Tfun _ retType) -> do 
+      params <- mapM evalExpr paramsExpr
+      (_, retVal) <- fn params
+      return (retType, retVal)
 
 evalExpr (Epostinc e) = do
   (Tint, Num v) <- evalExpr e
@@ -202,10 +210,8 @@ assign :: Exp -> TypedVal -> PartialResult ()
 assign (Evar ident) typedVal = do
   loc <- getloc $ Evar ident
   (t1, _) <- getTypeOnly loc
-  (t2, val) <- deepCopy typedVal
-  case t1 == t2 of 
-    True -> modify $ Data.Map.insert loc (t1, val)
-    False -> throwError $ "Unsupported operand type(s) for =: '" ++ (show t1) ++ "' and '" ++ (show t2) ++ "'." 
+  (_, val) <- deepCopy typedVal
+  modify $ Data.Map.insert loc (t1, val)
 
 assign (Earrgetcom lvalue (idExpr:[])) val = assign (Earrayget lvalue idExpr) val
 assign (Earrgetcom lvalue (idExpr:idExprs)) val = assign (Earrgetcom (Earrayget lvalue idExpr) idExprs) val

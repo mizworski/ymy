@@ -29,8 +29,13 @@ checkRunStmt (DeclS decl) = do
   return env'
 checkRunStmt stmt = do
   env' <- ask
-  checkStmt stmt Tinvalid
-  return env'
+  res <- checkStmt stmt Tinvalid
+  case res of 
+    (Left FReturnVoid) -> throwError "Return used outside function."
+    (Left (FReturn _)) -> throwError "Return used outside function."
+    (Left FBreak) -> throwError "Break used outside loop."
+    (Left FContinue) -> throwError "Continue used outside loop."
+    otherwise -> return env'
   
 checkDecl :: Decl_stmt -> PartialResult Env
 checkDecl (DeclVar (Declarator name varType)) = declare name varType
@@ -40,7 +45,7 @@ checkDefFun :: Ident -> Type -> [Dec] -> Stmt -> PartialResult Env
 checkDefFun fnName fnType args stmt = do
   reversedArgTypes <- parseDeclTypes args []
   argTypes <- return $ reverse $ reversedArgTypes
-  returnType <- checkFunArgs fnType argTypes
+  returnType <- checkFunArgs fnType argTypes fnName
   env <- ask
   env1 <- local (const env) $ declare fnName fnType
   env2 <- local (const env1) $ addArguments args [fnName]
@@ -48,35 +53,33 @@ checkDefFun fnName fnType args stmt = do
   loc <- local (const env1) $ getloc (Evar fnName)
   store <- get
   case Data.Map.lookup loc store of
-    Nothing -> throwError "Failed to declare Function."
-    otherwise -> local (const env1) $ modify (Data.Map.insert loc (fnType, Undefined))
+    Nothing -> throwError $ "Failed to declare function: " ++ (show fnName)
+    otherwise -> do 
+      fnNameStr <- return $ (\(Ident str) -> str) fnName
+      local (const env1) $ modify (Data.Map.insert loc (fnType, Str fnNameStr)) -- todo quick fix, using str to store fnName
 
   return env1
 
 parseDeclTypes :: [Dec] -> [Type] -> PartialResult [Type]
+parseDeclTypes [] [] = return [Tunit]
 parseDeclTypes [] acc = return acc
 parseDeclTypes ((Declarator _ argType):args) acc = parseDeclTypes args (argType:acc)
 
-checkFunArgs :: Type -> [Type] -> PartialResult Type  
-checkFunArgs (Tfunarg Tunit fnTypeResult) [] = do
-  case fnTypeResult of
-    (Tfunarg _ _) -> throwError "Cannot take arguments after found Unit in declaration."
-    otherwise -> return fnTypeResult
-checkFunArgs (Tfunarg _ _) [] = throwError "Invalid number of arguments passed to function."
-checkFunArgs fnType [] = return fnType 
+checkFunArgs :: Type -> [Type] -> Ident -> PartialResult Type  
+checkFunArgs (Tfun arg res) acc fnName = checkFunArgs (Tfunarg arg res) acc fnName
 
-checkFunArgs (Tfunarg argDeclType fnTypeResult) (argActualType:argsTypes) = do
+checkFunArgs fnType [] fnName = return fnType 
+checkFunArgs (Tfunarg argDeclType fnTypeResult) (argActualType:argsTypes) fnName = do
   case argDeclType == argActualType of
-    True -> checkFunArgs fnTypeResult argsTypes
+    True -> checkFunArgs fnTypeResult argsTypes fnName
     otherwise -> case argDeclType of 
       (Tfun firstArg resType) -> do 
         case (Tfunarg firstArg resType) == argActualType of
-          True -> checkFunArgs fnTypeResult argsTypes
-          False -> throwError "Argument type is invalid."
-      (expectedType) -> throwError $ "Expected type: '" ++ (show expectedType) ++ "', got: '" ++ (show argActualType) ++ "'."
+          True -> checkFunArgs fnTypeResult argsTypes fnName
+          False -> throwError $ "Argument type is invalid in function: " ++ (show fnName)
+      (expectedType) -> throwError $ "Expected type: '" ++ (show expectedType) ++ "', got: '" ++ (show argActualType) ++ "' in function: " ++ (show fnName)
     
-checkFunArgs (Tfun arg res) acc = checkFunArgs (Tfunarg arg res) acc
-checkFunArgs _ _ = throwError "Invalid number of arguments passed to function."
+checkFunArgs _ _ fnName = throwError $ "Invalid number of arguments passed to function: " ++ (show fnName)
 
 addArguments :: [Dec] -> [Ident] -> PartialResult Env
 addArguments [] _ = do
@@ -106,35 +109,41 @@ checkCompoundStmt (Scomp ((DeclS decl):stmts)) retType = do
   env' <- checkDecl decl
   res <- local (const env') (checkCompoundStmt (Scomp stmts) retType)
   return res
-checkCompoundStmt (Scomp (stmt:stmts)) retType = do
-  res <- checkStmt stmt retType
+checkCompoundStmt (Scomp (stmt:stmts)) expectedRetType = do
+  res <- checkStmt stmt expectedRetType
   case res of
     (Left FReturnVoid) -> do
-      case retType of
+      case expectedRetType of
         Tunit -> return $ Left FReturnVoid
-        otherwise -> throwError "Invalid return type"
+        Tinvalid -> throwError $ "Return used outside function."
+        otherwise -> throwError  $ "Invalid return type, expected: " ++ (show expectedRetType) ++ ", got: Unit"
     (Left (FReturn (actualRetType, retVal))) -> do
-      case actualRetType == retType of
-        True -> return $ Left $ FReturn (actualRetType, retVal)
-        False -> throwError "Invalid return type"
+      case expectedRetType of
+        Tinvalid -> throwError $ "Return used outside function."
+        otherwise -> case actualRetType == expectedRetType of
+          True -> return $ Left $ FReturn (actualRetType, retVal)
+          False -> throwError  $ "Invalid return type, expected: " ++ (show expectedRetType) ++ ", got: '" ++ (show actualRetType) ++ "'."
     otherwise -> do
-      res <- checkCompoundStmt (Scomp stmts) retType
+      res <- checkCompoundStmt (Scomp stmts) expectedRetType
       return res
       
       
 checkFlowStmt :: Flow_stmt -> Type -> PartialResult FTypedVal
 checkFlowStmt Scontinue _ = return $ Left FContinue
 checkFlowStmt Sbreak _ = return $ Left FBreak
-checkFlowStmt SreturnVoid returnType = do 
-  case returnType of 
+checkFlowStmt SreturnVoid expectedRetType = do 
+  case expectedRetType of 
     Tunit -> return $ Left FReturnVoid
-    otherwise -> throwError $ "Invalid return type, expected: " ++ (show returnType) ++ ", got: Unit"
+    Tinvalid -> throwError $ "Return used outside function."
+    otherwise -> throwError $ "Invalid return type, expected: " ++ (show expectedRetType) ++ ", got: Unit"
 checkFlowStmt (Sreturn expr) expectedRetType = do
   (actualRetType, retVal) <- checkExpr expr
-  case expectedRetType == actualRetType of
-    True -> return $ Left $ FReturn (actualRetType, retVal) 
-    False -> throwError $ "Invalid return type, expected: " ++ (show expectedRetType) ++ ", got: " ++ (show actualRetType)
-
+  case expectedRetType of
+    Tinvalid -> throwError $ "Return used outside function."
+    otherwise -> case actualRetType == expectedRetType of
+      True -> return $ Left $ FReturn (actualRetType, retVal)
+      False -> throwError  $ "Invalid return type, expected: " ++ (show expectedRetType) ++ ", got: '" ++ (show actualRetType) ++ "'."
+    
 checkPrintStmt :: Print_stmt -> PartialResult FTypedVal
 checkPrintStmt (Sprint exp) = do 
   res <- checkExpr exp
@@ -201,8 +210,8 @@ checkExpr (Econdition be e1 e2) = do
     otherwise -> throwError $ "Unsupported operand type(s) for ?: '" ++ (show beType) ++ "' as condition." 
 
 checkExpr (Econst const) = checkConst const
-checkExpr (Evar ident) = checkVar ident --dsdd
-checkExpr (Eplus e1 e2) = do -- dsds
+checkExpr (Evar ident) = checkVar ident 
+checkExpr (Eplus e1 e2) = do 
     (t1, _) <- checkExpr e1
     (t2, _) <- checkExpr e2
     case t1 == t2 of
@@ -354,18 +363,28 @@ checkExpr (Epostdec e) = do
     otherwise -> throwError $ "Unsupported operand type for ++ (post decrement): '" ++ (show t) ++ "'."
     
 checkExpr (Efunkpar fnExpr paramsExpr) = do
-  (fnType, _) <- checkExpr fnExpr
+  (fnType, val) <- checkExpr fnExpr
   case fnType of 
     (Tfunarg _ _) -> do
       reversedParamsTypes <- getParamsTypes paramsExpr []
       paramsTypes <- return $ reverse $ reversedParamsTypes
-      returnType <- checkFunArgs fnType paramsTypes
-      return (returnType, Undefined)
+      case val of 
+        (Str fnName) -> do
+          returnType <- checkFunArgs fnType paramsTypes (Ident fnName)
+          return (returnType, Undefined)
+        otherwise -> do
+          returnType <- checkFunArgs fnType paramsTypes (Ident "Unknown")
+          return (returnType, Undefined)
     (Tfun _ _) -> do
       reversedParamsTypes <- getParamsTypes paramsExpr []
       paramsTypes <- return $ reverse $ reversedParamsTypes
-      returnType <- checkFunArgs fnType paramsTypes
-      return (returnType, Undefined)
+      case val of 
+        (Str fnName) -> do
+          returnType <- checkFunArgs fnType paramsTypes (Ident fnName)
+          return (returnType, Undefined)
+        otherwise -> do
+          returnType <- checkFunArgs fnType paramsTypes (Ident "Unknown")
+          return (returnType, Undefined)
     otherwise -> throwError $ "'" ++ (show fnType) ++ "' object is not callable."
     
 checkExpr (Elambda args expr) = do
@@ -375,7 +394,7 @@ checkExpr (Elambda args expr) = do
   env1 <- local (const env) $ addArguments args []
   (retType, _) <- local (const env1) $ checkExpr expr
   fnType <- constructFunction (retType:reversedArgTypes) Tunit
-  return (fnType, Undefined)
+  return (fnType, Str "<lambda>")
 
 checkConst :: Constant -> PartialResult TypedVal
 checkConst (Einteger  int) = return (Tint, Undefined)
@@ -389,6 +408,7 @@ checkVar ident = do
   return (t, Undefined)
   
 getParamsTypes :: [Exp] -> [Type] -> PartialResult [Type]
+getParamsTypes [] [] = return [Tunit]
 getParamsTypes [] parsedTypes = return parsedTypes
 getParamsTypes (paramExpr:paramsExprs) parsedTypes = do 
   (t, _) <- checkExpr paramExpr  

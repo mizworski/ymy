@@ -54,6 +54,7 @@ runStmt (DeclS decl) = do
 runStmt stmt = do
   env' <- ask
   res <- evalStmt stmt
+  
   return (env', res)
 
 runDecl :: Decl_stmt -> PartialResult Env
@@ -64,20 +65,20 @@ defineFun :: Ident -> Type -> [Dec] -> Stmt -> PartialResult Env
 defineFun fnName fnType args stmt = do
   env <- ask
   env1 <- local (const env) $ declare fnName fnType
-  let fname params = do
+  let fn params = do
       (env2, _) <- local (const env1) $ parseArgs args params
       (_, res) <- local (const env2) $ runStmt stmt
       case res of
         (Left (FReturn res)) -> return res
         (Left FReturnVoid) -> return (Tunit, Undefined) 
-        otherwise -> throwError "Function had no return."
+        otherwise -> throwError $ "Function '" ++ (show fnName) ++ "' had no return."
 
   loc <- local (const env1) $ getloc (Evar fnName)
   store <- get
 
   case Data.Map.lookup loc store of
-    Nothing -> throwError "Failed to declare Function."
-    otherwise -> local (const env1) $ modify (Data.Map.insert loc (fnType, Fun fname))
+    Nothing -> throwError $ "Failed to declare function '" ++ (show fnName) ++ "'." 
+    otherwise -> local (const env1) $ modify (Data.Map.insert loc (fnType, Fun fn))
 
   return env1
 
@@ -138,10 +139,15 @@ evalLoop condExp postLoopExp stmt = do
     otherwise -> throwError "Condition must be bexpr."
 
 evalFor :: Expression_stmt -> Expression_stmt -> Exp -> Stmt -> PartialResult FTypedVal
-evalFor initExpStmt (Sexpr condExp) incrExp evalStmt = do
-  res <- evalExprStmt initExpStmt
+evalFor (Sexpr initExp) (Sexpr condExp) incrExp evalStmt = do
+  res <- evalExprStmt $ Sexpr initExp
   evalLoop condExp incrExp evalStmt
-evalFor initExpStmt empty incrExp evalStmt = do
+evalFor (Sexpr initExp) _ incrExp evalStmt = do
+  res <- evalExprStmt $ Sexpr initExp
+  evalLoop (Econst Etrue) incrExp evalStmt
+evalFor _ (Sexpr condExp) incrExp evalStmt = do
+  evalLoop condExp incrExp evalStmt
+evalFor _ _ incrExp evalStmt = do
   evalLoop (Econst Etrue) incrExp evalStmt
 
 
@@ -171,6 +177,10 @@ evalFlowStmt (Sreturn expr) = do
 
 evalPrintStmt :: Print_stmt -> PartialResult FTypedVal
 evalPrintStmt (Sprint exp) = do
-  (varType, val) <- evalExpr exp
-  liftIO $ putStrLn $ show val
+  (_, val) <- evalExpr exp
+  (varType, _) <- checkExpr exp
+  case varType of 
+    (Tfun _ _) -> liftIO $ putStrLn $ show varType
+    (Tfunarg _ _) -> liftIO $ putStrLn $ show varType
+    othwerwise -> liftIO $ putStrLn $ show val
   return $ Right $ (varType, val)

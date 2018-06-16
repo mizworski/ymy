@@ -80,9 +80,7 @@ instance Print Double where
 
 instance Print Ident where
   prt _ (Ident i) = doc (showString ( i))
-  prtList _ [] = (concatD [])
-  prtList _ [x] = (concatD [prt 0 x])
-  prtList _ (x:xs) = (concatD [prt 0 x, doc (showString ","), prt 0 xs])
+
 
 
 instance Print Program where
@@ -109,13 +107,13 @@ instance Print Dec where
 instance Print Type where
   prt i e = case e of
     Tunit -> prPrec i 0 (concatD [doc (showString "Unit")])
+    Tfun type_1 type_2 -> prPrec i 0 (concatD [doc (showString "("), prt 0 type_1, doc (showString "->"), prt 0 type_2, doc (showString ")")])
     Tarray type_ -> prPrec i 2 (concatD [doc (showString "["), prt 2 type_, doc (showString "]")])
     Tint -> prPrec i 2 (concatD [doc (showString "Int")])
     Tbool -> prPrec i 2 (concatD [doc (showString "Bool")])
     Tstring -> prPrec i 2 (concatD [doc (showString "String")])
     Tany -> prPrec i 2 (concatD [doc (showString "Any")])
     Tinvalid -> prPrec i 2 (concatD [doc (showString "Invalid")])
-    Tfun type_1 type_2 -> prPrec i 0 (concatD [doc (showString "("), prt 0 type_1, doc (showString "->"), prt 0 type_2, doc (showString ")")])
     Tfunarg type_1 type_2 -> prPrec i 2 (concatD [prt 0 type_1, doc (showString "->"), prt 0 type_2])
 
 instance Print Decl_stmt where
@@ -161,7 +159,7 @@ instance Print Exp where
     Econdition exp1 exp2 exp3 -> prPrec i 3 (concatD [prt 4 exp1, doc (showString "?"), prt 0 exp2, doc (showString ":"), prt 3 exp3])
     Elor exp1 exp2 -> prPrec i 4 (concatD [prt 4 exp1, doc (showString "or"), prt 5 exp2])
     Eland exp1 exp2 -> prPrec i 5 (concatD [prt 5 exp1, doc (showString "and"), prt 6 exp2])
-    Epreoplog unarylogoperator exp -> prPrec i 6 (concatD [prt 0 unarylogoperator, prt 5 exp])
+    Epreoplog unarylogoperator exp -> prPrec i 6 (concatD [prt 0 unarylogoperator, prt 6 exp])
     Eeq exp1 exp2 -> prPrec i 7 (concatD [prt 7 exp1, doc (showString "=="), prt 8 exp2])
     Eneq exp1 exp2 -> prPrec i 7 (concatD [prt 7 exp1, doc (showString "!="), prt 8 exp2])
     Elthen exp1 exp2 -> prPrec i 8 (concatD [prt 8 exp1, doc (showString "<"), prt 9 exp2])
@@ -174,17 +172,14 @@ instance Print Exp where
     Ediv exp1 exp2 -> prPrec i 10 (concatD [prt 10 exp1, doc (showString "/"), prt 11 exp2])
     Emod exp1 exp2 -> prPrec i 10 (concatD [prt 10 exp1, doc (showString "%"), prt 11 exp2])
     Earray exps -> prPrec i 11 (concatD [doc (showString "["), prt 0 exps, doc (showString "]")])
-    Epreopexp unaryexpoperator exp -> prPrec i 11 (concatD [prt 0 unaryexpoperator, prt 10 exp])
+    Epreopexp unaryexpoperator exp -> prPrec i 11 (concatD [prt 0 unaryexpoperator, prt 11 exp])
     Epostinc exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "++")])
     Epostdec exp -> prPrec i 12 (concatD [prt 12 exp, doc (showString "--")])
     Efunkpar exp exps -> prPrec i 12 (concatD [prt 12 exp, doc (showString "("), prt 0 exps, doc (showString ")")])
-    Earrayget exp1 exp2 -> prPrec i 12 (concatD [prt 12 exp1, doc (showString "["), prt 9 exp2, doc (showString "]")])
-    Earrgetcom exp exps -> prPrec i 12 (concatD [prt 12 exp, doc (showString "["), prt 9 exps, doc (showString "]")])
+    Earrayget exp1 exp2 -> prPrec i 12 (concatD [prt 12 exp1, doc (showString "["), prt 0 exp2, doc (showString "]")])
+    Earrgetcom exp exps -> prPrec i 12 (concatD [prt 12 exp, doc (showString "["), prt 0 exps, doc (showString "]")])
     Evar id -> prPrec i 13 (concatD [prt 0 id])
     Econst constant -> prPrec i 13 (concatD [prt 0 constant])
-  prtList 9 [] = (concatD [])
-  prtList 9 [x] = (concatD [prt 9 x])
-  prtList 9 (x:xs) = (concatD [prt 9 x, doc (showString ","), prt 9 xs])
   prtList _ [] = (concatD [])
   prtList _ [x] = (concatD [prt 0 x])
   prtList _ (x:xs) = (concatD [prt 0 x, doc (showString ","), prt 0 xs])
